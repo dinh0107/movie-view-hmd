@@ -78,26 +78,48 @@ export function fixApiPath(path: string) {
   return p;
 }
 
+const DEFAULT_ORIGIN = "https://phimngay.top";
+
+// Ưu tiên ENV, sau đó tới Vercel URL, cuối cùng là DEFAULT_ORIGIN
+function resolveOrigin(): string | null {
+  const candidates = [
+    process.env.API_ORIGIN,                                 // bạn set trong Vercel
+    process.env.NEXT_PUBLIC_SITE_URL,                       // bạn set trong Vercel
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null, // preview/prod runtime
+    DEFAULT_ORIGIN,                                         // fallback cuối cùng
+  ].filter(Boolean) as string[];
+
+  // Không dùng localhost/127.* cho build
+  const nonLocal = candidates.find(
+    (u) => !/localhost|127\.0\.0\.1/i.test(u)
+  );
+
+  return nonLocal ?? null;
+}
 
 export async function getAllMovies(): Promise<Movie[]> {
-  const origin =
-    process.env.API_ORIGIN ||
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    "http://localhost:3000";
+  const origin = resolveOrigin();
+
+  if (!origin) {
+    console.warn("getAllMovies: no valid origin; returning [].");
+    return [];
+  }
+
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), 10_000);
 
   try {
     const res = await fetch(`${origin}/api/movies?limit=5000`, {
       next: { revalidate: 3600 }, 
+      signal: controller.signal,
     });
-
-    if (!res.ok) {
-      throw new Error(`Fetch movies failed: ${res.status}`);
-    }
-
+    if (!res.ok) throw new Error(`Fetch movies failed: ${res.status}`);
     return (await res.json()) as Movie[];
   } catch (err) {
     console.error("getAllMovies error:", err);
-    return [];
+    return []; // để sitemap fallback sang staticItems và build vẫn pass
+  } finally {
+    clearTimeout(t);
   }
 }
 
