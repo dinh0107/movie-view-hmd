@@ -84,7 +84,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <SpeedInsights />
           <FooterLayout />
         </MenuProvider>
-        <script type='text/javascript' src='//pl27607255.revenuecpmgate.com/53/97/f1/5397f120c7c37e17c9c154ad51c3e672.js'></script>
+        <>
+          <div style={{ width: 468, height: 60, margin: "0 auto", textAlign: "center" }}>
+            <Script id="adsterra-banner" strategy="afterInteractive">
+              {`
+        atOptions = {
+          'key' : '17b54045ff794d986c3109e1e7e1c7d2',
+          'format' : 'iframe',
+          'height' : 60,
+          'width' : 468,
+          'params' : {}
+        };
+      `}
+            </Script>
+            <Script
+              strategy="afterInteractive"
+              src="https://www.profitabledisplaynetwork.com/17b54045ff794d986c3109e1e7e1c7d2/invoke.js"
+            />
+          </div>
+        </>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
