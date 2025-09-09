@@ -97,32 +97,6 @@ function resolveOrigin(): string | null {
   return nonLocal ?? null;
 }
 
-export async function getAllMovies(): Promise<Movie[]> {
-  const origin = resolveOrigin();
-
-  if (!origin) {
-    console.warn("getAllMovies: no valid origin; returning [].");
-    return [];
-  }
-
-  const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), 10_000);
-
-  try {
-    const res = await fetch(`${origin}/api/movies?limit=5000`, {
-      next: { revalidate: 3600 }, 
-      signal: controller.signal,
-    });
-    if (!res.ok) throw new Error(`Fetch movies failed: ${res.status}`);
-    return (await res.json()) as Movie[];
-  } catch (err) {
-    console.error("getAllMovies error:", err);
-    return []; // để sitemap fallback sang staticItems và build vẫn pass
-  } finally {
-    clearTimeout(t);
-  }
-}
-
 
 export const sanitizeSlug = (slug: string) => {
   if (slug === "phim-moi-cap-nhat" || slug.startsWith("phim-moi-cap-nhat")) {
