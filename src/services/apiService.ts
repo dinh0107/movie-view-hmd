@@ -68,8 +68,8 @@ function normalizeMovie(item: any): Movie {
     id: safeId(item, ""),
     name: item.name ?? "",
     slug: item.slug ?? "",
-    poster_url: normalizeImage(item.poster_url),
-    thumb_url: normalizeImage(item.thumb_url),
+    poster_url: `https://phimapi.com/image.php?url=${(item.poster_url)}`,
+    thumb_url:  `https://phimapi.com/image.php?url=${(item.thumb_url)}`,
     year: Number(item.year) || 0,
     episode_current: String(item.episode_current ?? ""),
   };

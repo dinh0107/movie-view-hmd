@@ -152,7 +152,7 @@ export default function HeroBannerSlider() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
         style={{
-          backgroundImage: `url(${activeMovie.backdrop})`,
+          backgroundImage: `url(https://phimapi.com/image.php?url=${activeMovie.backdrop})`,
           backgroundPosition: "center",
           backgroundSize: "cover",
         }}

@@ -7,15 +7,16 @@ export type Movie = {
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
+
 export function normalizeImage(url?: string | null) {
   if (!url) return "/no-image.jpg";
 
   if (/^https?:\/\//i.test(url)) {
     return url;
   }
+
   const path = url.replace(/^\/+/, "");
-  const full = `https://phimimg.com/${path}`;
-  return full;
+  return `https://phimapi.com/image.php?url=/${path}`;
 }
 
 
@@ -80,13 +81,12 @@ export function fixApiPath(path: string) {
 
 const DEFAULT_ORIGIN = "https://phimngay.top";
 
-// Ưu tiên ENV, sau đó tới Vercel URL, cuối cùng là DEFAULT_ORIGIN
 function resolveOrigin(): string | null {
   const candidates = [
-    process.env.API_ORIGIN,                                 // bạn set trong Vercel
-    process.env.NEXT_PUBLIC_SITE_URL,                       // bạn set trong Vercel
-    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null, // preview/prod runtime
-    DEFAULT_ORIGIN,                                         // fallback cuối cùng
+    process.env.API_ORIGIN,                                 
+    process.env.NEXT_PUBLIC_SITE_URL,                      
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null, 
+    DEFAULT_ORIGIN,                                        
   ].filter(Boolean) as string[];
 
   // Không dùng localhost/127.* cho build
