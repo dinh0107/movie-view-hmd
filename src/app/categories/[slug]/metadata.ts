@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { apiGet } from "@/services/axiosClient";
+import { normalizeSlug } from "@/lib/utils";
 
 const toAbsolute = (u: string) =>
   /^https?:\/\//i.test(u)
@@ -15,10 +16,11 @@ export async function generateMetadata({
   params,
   searchParams,
 }: {
-  params: Promise<{ slug: string }>; 
+  params: Promise<{ slug: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<Metadata> {
   const { slug } = await params;
+  const normalizedSlug = normalizeSlug(slug)
   const sp = await searchParams;
 
   const pick = (k: string) => {
@@ -40,11 +42,11 @@ export async function generateMetadata({
   const data = res?.data ?? {};
   const seo = data?.seoOnPage ?? {};
 
-  const pretty = prettyFromSlug(slug);
+  const pretty = prettyFromSlug(normalizedSlug);
   const title =
     seo.titleHead ||
     data?.titlePage ||
-    `Thể loại: ${pretty}`;
+    `${pretty}`;
 
   const description =
     seo.descriptionHead ||
@@ -63,7 +65,7 @@ export async function generateMetadata({
 
   const images = ogImages.length > 0 ? ogImages.slice(0, 3) : cover ? [cover] : undefined;
 
-  const canonical = `/the-loai/${slug}`;
+  const canonical = `/the-loai/${normalizedSlug}`;
 
   return {
     title,

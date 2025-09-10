@@ -134,3 +134,11 @@ export function getListTitle(slug: string, categoryTitle?: string) {
   return `Danh sách: ${pretty}`;
 }
 
+
+
+export const normalizeSlug = (s: string) =>
+  s.normalize("NFD")
+   .replace(/[\u0300-\u036f]/g, "")
+   .replace(/đ/g, "d")
+   .replace(/Đ/g, "D")
+   .toLowerCase();

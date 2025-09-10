@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { apiGet } from "@/services/axiosClient";
+import { normalizeSlug } from "@/lib/utils";
 
 const toAbsolute = (u?: string) =>
   u && /^https?:\/\//i.test(u)
@@ -23,6 +24,7 @@ export async function generateMetadata({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<Metadata> {
   const { slug } = await params;
+  const normalizedSlug = normalizeSlug(slug)
   const sp = await searchParams;
 
   const epParam = Array.isArray(sp?.ep) ? sp.ep[0] : sp?.ep;
@@ -60,7 +62,7 @@ export async function generateMetadata({
   const images = (ogImages.length ? ogImages : [poster, thumb].filter(Boolean))
     .slice(0, 3) as string[] | undefined;
 
-  const canonical = `/watch/${slug}${epParam ? `?ep=${epParam}` : ""}`;
+  const canonical = `/watch/${normalizedSlug}${epParam ? `?ep=${epParam}` : ""}`;
 
   return {
     title,

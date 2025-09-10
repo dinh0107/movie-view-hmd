@@ -100,7 +100,6 @@ export default function MovieCategories() {
         }))
       );
       setSections(data);
-      console.log(data)
     };
 
     fetchData();

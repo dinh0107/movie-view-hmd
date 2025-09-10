@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { apiGet } from "@/services/axiosClient";
+import { normalizeSlug } from "@/lib/utils";
 
 const toAbsolute = (u: string) =>
   /^https?:\/\//i.test(u)
@@ -19,6 +20,7 @@ export async function generateMetadata({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<Metadata> {
   const { slug } = await params;
+  const normalizedSlug = normalizeSlug(slug)
   const sp = await searchParams;
 
   const pick = (k: string) => {
@@ -53,7 +55,7 @@ export async function generateMetadata({
   }
 
   const seo = data?.seoOnPage ?? {};
-  const pretty = prettyFromSlug(slug);
+  const pretty = prettyFromSlug(normalizedSlug);
 
   const baseTitle = seo.titleHead || data?.titlePage || `Quốc gia: ${pretty}`;
   const title = page > 1 ? `${baseTitle} - Trang ${page}` : baseTitle;
@@ -75,7 +77,7 @@ export async function generateMetadata({
   }
   const images = ogImages.length ? ogImages : cover ? [cover] : undefined;
 
-  const canonical = page > 1 ? `/quoc-gia/${slug}?page=${page}` : `/quoc-gia/${slug}`;
+  const canonical = page > 1 ? `/quoc-gia/${normalizedSlug}?page=${page}` : `/quoc-gia/${normalizedSlug}`;
 
   const noItems = !Array.isArray(data?.items) || data.items.length === 0;
 

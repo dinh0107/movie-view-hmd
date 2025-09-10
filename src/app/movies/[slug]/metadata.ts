@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { apiGet } from "@/services/axiosClient";
+import { normalizeSlug } from "@/lib/utils";
 
 const toAbsolute = (u?: string) =>
   u && /^https?:\/\//i.test(u)
     ? u
     : u
-    ? `https://phimimg.com/${u.replace(/^\/+/, "")}`
-    : undefined;
+      ? `https://phimimg.com/${u.replace(/^\/+/, "")}`
+      : undefined;
 
 const stripHtml = (html?: string) =>
   (html || "")
@@ -20,9 +21,8 @@ export async function generateMetadata({
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  // ✅ Phải await params trong Next.js 15
   const { slug } = await params;
-
+  const normalizedSlug = normalizeSlug(slug)
   let payload: any = {};
   let errored = false;
 
@@ -57,7 +57,7 @@ export async function generateMetadata({
     ogImages.length ? ogImages : [poster, thumb].filter(Boolean)
   ).slice(0, 3) as string[] | undefined;
 
-  const canonical = `/movies/${slug}`;
+  const canonical = `/movies/${normalizedSlug}`;
   const noindex = errored || !mv?.name;
 
   return {
@@ -66,10 +66,10 @@ export async function generateMetadata({
     alternates: { canonical },
     robots: noindex
       ? {
-          index: false,
-          follow: true,
-          googleBot: { index: false, follow: true },
-        }
+        index: false,
+        follow: true,
+        googleBot: { index: false, follow: true },
+      }
       : { index: true, follow: true },
     openGraph: {
       type: (seo.og_type as any) || "video.movie",
