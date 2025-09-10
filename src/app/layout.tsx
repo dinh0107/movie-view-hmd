@@ -54,7 +54,7 @@ export const metadata: Metadata = {
       "Phim Ngay là website xem phim online miễn phí, chất lượng HD. Cập nhật phim mới nhanh chóng, đa dạng thể loại: hành động, tình cảm, kinh dị, hoạt hình, anime. Giao diện thân thiện, không cần đăng ký, xem mượt trên mọi thiết bị.",
     locale: "vi_VN",
     images: [
-      { url: "/og/og-home.jpg", width: 1200, height: 630, alt: "Phim ngay - Xem Phim Online HD" },
+      { url: "/public/6199290559244388322.jpg", width: 1200, height: 630, alt: "Phim ngay - Xem Phim Online HD" },
     ],
   },
   twitter: {
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
     title: "Phim ngay - Xem Phim Online HD, Phim Mới Cập Nhật Nhanh",
     description:
       "Phim Ngay là website xem phim online miễn phí, chất lượng HD. Cập nhật phim mới nhanh chóng, đa dạng thể loại: hành động, tình cảm, kinh dị, hoạt hình, anime. Giao diện thân thiện, không cần đăng ký, xem mượt trên mọi thiết bị.",
-    images: ["/og/og-home.jpg"],
+    images: ["/public/6199290559244388322.jpg"],
   },
   icons: {
     icon: [
@@ -87,6 +87,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             .filter(Boolean).pop()
             .appendChild(document.createElement('script')));`}
       </Script> */}
+        <meta name="keywords" content="xem phim online, phim HD, phim mới, phim hành động, phim lẻ, phim chiếu rạp" />
         <Script
           async
           src="https://www.googletagmanager.com/gtag/js?id=G-CVV3RVL1X1"
