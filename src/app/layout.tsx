@@ -76,6 +76,27 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="vi">
+      <head>
+        <meta name="monetag" content="dc0b7a9e690910128eaa099f540b4082" />
+
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "Phim ngay",
+              url: "https://www.phimngay.top/",
+              potentialAction: {
+                "@type": "SearchAction",
+                target: "https://www.phimngay.top/tim-kiem?q={search_term_string}",
+                "query-input": "required name=search_term_string",
+              },
+            }),
+          }}
+        />
+      </head>
+
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black`}>
         <MenuProvider>
           <HeaderLayout />
@@ -84,23 +105,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <SpeedInsights />
           <FooterLayout />
         </MenuProvider>
-        <script type='text/javascript' src='//pl27607348.revenuecpmgate.com/d0/32/16/d0321692f452a034cb992153707aa8cb.js'></script>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "WebSite",
-              name: "Phim ngay",
-              url: SITE_URL,
-              potentialAction: {
-                "@type": "SearchAction",
-                target: `${SITE_URL}/tim-kiem?q={search_term_string}`,
-                "query-input": "required name=search_term_string",
-              },
-            }),
-          }}
-        />
       </body>
     </html>
   );
