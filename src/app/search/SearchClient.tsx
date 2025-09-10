@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { useParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { apiGet } from "@/services/axiosClient";
 import { Loader2, X } from "lucide-react";
 import {
@@ -47,7 +47,7 @@ function Breadcrumb({ title }: { title: string }) {
 function MovieCard({ movie }: { movie: ApiMovie }) {
   const poster = movie.poster_url || movie.thumb_url;
   return (
-    <article className="group relative overflow-hidden rounded-2xl bg-white/5 ring-1 ring-white/10 shadow-lg  min-h-[150px] aspect-[2/3]">
+    <article className="group relative overflow-hidden rounded-2xl bg-white/5 ring-1 ring-white/10 shadow-lg min-h-[150px] aspect-[2/3]">
       <a
         href={`/movies/${movie.slug}`}
         className="aspect-[2/3] w-full overflow-hidden"
@@ -62,7 +62,7 @@ function MovieCard({ movie }: { movie: ApiMovie }) {
 
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-80" />
 
-      <div className="absolute top-2 left-2 flex items-center gap-2 flex-1 sm:flex-none">
+      <div className="absolute top-2 left-2 flex items-center gap-2 flex-1">
         <span className="bg-black/60 text-white/80 text-xs px-2 py-0.5 rounded-md">
           {movie.year || "—"}
         </span>
@@ -80,7 +80,7 @@ function MovieCard({ movie }: { movie: ApiMovie }) {
         <div className="mt-3">
           <a
             href={`/movies/${movie.slug}`}
-            className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white shadow transition hover:bg-red-700"
+            className="inline-flex items-center gap-2 flex-1 rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white shadow transition hover:bg-red-700"
           >
             <svg
               width="16"
@@ -99,44 +99,46 @@ function MovieCard({ movie }: { movie: ApiMovie }) {
   );
 }
 
-export default function MoviesPage() {
-  const params = useParams<{ slug: string }>();
-  const slug = Array.isArray(params?.slug) ? params.slug[0] : params?.slug;
+export default function SearchPage() {
+  const searchParams = useSearchParams();
+  const keyword = searchParams.get("query") || "";
 
   const [movies, setMovies] = React.useState<ApiMovie[]>([]);
   const [page, setPage] = React.useState(1);
   const [totalPages, setTotalPages] = React.useState(1);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [countryTitle, setCountryTitle] = React.useState<string>("Movies");
 
   const [category, setCategory] = React.useState("");
+  const [country, setCountry] = React.useState("");
   const [lang, setLang] = React.useState("");
   const [year, setYear] = React.useState("");
 
-  const { categories } = useMenu();
+  const { countries, categories } = useMenu();
 
   React.useEffect(() => {
     setMovies([]);
     setPage(1);
     setError(null);
-  }, [slug, category, lang, year]);
+  }, [keyword, country, lang, year]);
 
   React.useEffect(() => {
-    if (!slug) return;
+    if (!keyword) return;
     const run = async () => {
       try {
         setLoading(true);
         const res = await apiGet<any>(
-          `/quoc-gia/${slug}?page=${page}&limit=15` +
+          `/tim-kiem?keyword=${encodeURIComponent(
+            keyword
+          )}&page=${page}&limit=15` +
             (category ? `&category=${category}` : "") +
+            (country ? `&country=${country}` : "") +
             (lang ? `&sort_lang=${lang}` : "") +
             (year ? `&year=${year}` : ""),
           { baseKey: "phim_v1" }
         );
         const data = res?.data ?? {};
 
-        setCountryTitle(data.titlePage || slug);
         setTotalPages(data?.params?.pagination?.totalPages || page);
 
         const items =
@@ -167,31 +169,27 @@ export default function MoviesPage() {
     };
 
     run();
-  }, [slug, page, category, lang, year]);
+  }, [keyword, page, country, category, lang, year]);
 
   return (
     <div className="min-h-screen pb-6 bg-black text-white">
-      <Breadcrumb title={slug ? `Quốc gia: ${countryTitle}` : "Movies"} />
+      <Breadcrumb title={keyword ? `Kết quả cho: "${keyword}"` : "Tìm kiếm"} />
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-wrap gap-4 mb-6">
-          <div className="flex items-center gap-2 flex-1 sm:flex-none relative">
+          <div className="flex items-center gap-2 flex-1 relative">
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="sm:!w-[200px] !w-full bg-gray-900 text-white">
+              <SelectTrigger className="sm:w-[200px] !w-full bg-gray-900 text-white">
                 <SelectValue placeholder="Thể loại" />
               </SelectTrigger>
               <SelectContent className="bg-gray-900 text-white">
-                {categories.map((category) => (
-                  <SelectItem
-                    key={category?.slug ?? ""}
-                    value={category.slug ?? ""}
-                  >
-                    {category?.name}
+                {categories.map((c) => (
+                  <SelectItem key={c?.slug ?? ""} value={c.slug ?? ""}>
+                    {c?.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-
             {category && (
               <Button
                 variant="ghost"
@@ -203,9 +201,34 @@ export default function MoviesPage() {
             )}
           </div>
 
-          <div className="flex items-center gap-2 flex-1 sm:flex-none relative">
+          <div className="flex items-center gap-2 flex-1 relative">
+            <Select value={country} onValueChange={setCountry}>
+              <SelectTrigger className="sm:w-[200px] !w-full bg-gray-900 text-white">
+                <SelectValue placeholder="Quốc gia" />
+              </SelectTrigger>
+              <SelectContent className="bg-gray-900 text-white">
+                {countries.map((c) => (
+                  <SelectItem key={c?.slug ?? ""} value={c.slug ?? ""}>
+                    {c?.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {country && (
+              <Button
+                variant="ghost"
+                className="text-red-500 cursor-pointer w-[18px] h-[18px] !p-0 right-2 rounded-full bg-white absolute top-1/2 transform -translate-y-1/2"
+                onClick={() => setCountry("")}
+              >
+                <X />
+              </Button>
+            )}
+          </div>
+
+          {/* Ngôn ngữ */}
+          <div className="flex items-center gap-2 flex-1 relative">
             <Select value={lang} onValueChange={setLang}>
-              <SelectTrigger className="sm:!w-[200px] !w-full bg-gray-900 text-white">
+              <SelectTrigger className="sm:w-[200px] !w-full bg-gray-900 text-white">
                 <SelectValue placeholder="Phụ đề" />
               </SelectTrigger>
               <SelectContent className="bg-gray-900 text-white">
@@ -214,7 +237,6 @@ export default function MoviesPage() {
                 <SelectItem value="long-tieng">Lồng tiếng</SelectItem>
               </SelectContent>
             </Select>
-
             {lang && (
               <Button
                 variant="ghost"
@@ -226,9 +248,10 @@ export default function MoviesPage() {
             )}
           </div>
 
-          <div className="flex items-center gap-2 flex-1 sm:flex-none relative">
+          {/* Năm phát hành */}
+          <div className="flex items-center gap-2 flex-1 relative">
             <Select value={year} onValueChange={setYear}>
-              <SelectTrigger className="sm:!w-[200px] !w-full bg-gray-900 text-white">
+              <SelectTrigger className="sm:w-[200px] !w-full bg-gray-900 text-white">
                 <SelectValue placeholder="Năm phát hành" />
               </SelectTrigger>
               <SelectContent className="bg-gray-900 text-white max-h-60 overflow-y-auto">
@@ -242,7 +265,6 @@ export default function MoviesPage() {
                 ))}
               </SelectContent>
             </Select>
-
             {year && (
               <Button
                 variant="ghost"

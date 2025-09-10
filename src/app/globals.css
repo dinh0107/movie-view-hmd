@@ -151,3 +151,9 @@
   height: 0;
   display: none;
 }
+
+
+/* Banner css */
+.h-webkit {
+  height: -webkit-fill-available;
+}

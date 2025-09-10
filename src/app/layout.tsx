@@ -8,7 +8,7 @@ import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 
-const SITE_URL = "https://ro-phim.vn";
+const SITE_URL = "https://www.phimngay.top/";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });

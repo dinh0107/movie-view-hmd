@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Search, Film, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,7 @@ export default function SearchDialog() {
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const delayDebounce = setTimeout(async () => {
@@ -40,12 +42,18 @@ export default function SearchDialog() {
     return () => clearTimeout(delayDebounce);
   }, [search]);
 
+  const handleSearch = () => {
+    if (!search.trim()) return;
+    setOpen(false);
+    router.push(`/search?query=${encodeURIComponent(search)}`);
+  };
+
   return (
     <Dialog
       open={open}
       onOpenChange={(val) => {
         setOpen(val);
-        if (!val) setSearch(""); 
+        if (!val) setSearch("");
       }}
     >
       <DialogTrigger asChild>
@@ -63,15 +71,26 @@ export default function SearchDialog() {
           Tìm kiếm phim
         </DialogTitle>
 
-        <div className="relative md:mb-4">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <Input
-            autoFocus
-            placeholder="Nhập tên phim..."
-            className="w-full bg-gray-900 border-gray-700 text-white placeholder-gray-400 text-lg pl-12 pr-4 py-3 h-12 rounded-xl"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+        <div className="relative md:mb-4 flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Input
+              autoFocus
+              placeholder="Nhập tên phim..."
+              className="w-full bg-gray-900 border-gray-700 text-white placeholder-gray-400 text-lg pl-12 pr-4 py-3 h-12 rounded-xl"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSearch();
+              }}
+            />
+          </div>
+          <Button
+            onClick={handleSearch}
+            className="bg-red-500 hover:bg-red-600 text-white text-lg rounded-md h-12 px-6 cursor-pointer"
+          >
+            Tìm
+          </Button>
         </div>
 
         <div className="mt-2 max-h-72 overflow-y-auto scrollbar-thin scrollbar-thumb-red-500 scrollbar-track-gray-800 scrollbar-thumb-rounded-full scrollbar-track-rounded-full">
@@ -91,7 +110,7 @@ export default function SearchDialog() {
                     href={`/movies/${movie.slug}`}
                     onClick={() => {
                       setSearch("");
-                      setOpen(false); 
+                      setOpen(false);
                     }}
                     className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer"
                   >

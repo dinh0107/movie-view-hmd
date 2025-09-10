@@ -1,6 +1,6 @@
 "use client";
 
-import { Film } from "lucide-react";
+import { FilmIcon } from "lucide-react";
 import Link from "next/link";
 
 export default function FooterLayout() {
@@ -82,7 +82,15 @@ export default function FooterLayout() {
     <footer className="bg-black text-white px-6 pt-12 pb-6 border-t border-gray-800">
       <div className="max-w-7xl px-4 sm:px-6 mx-auto">
         <div className="flex items-center gap-3 mb-8">
-          <span className="text-2xl font-bold text-red-500"> 🎬 Rổ Phim</span>
+          <Link
+            href="/"
+            className="text-xl sm:text-2xl font-bold tracking-wide flex items-center justify-center gap-2 
+             bg-gradient-to-r from-red-600 via-pink-500 to-purple-700 
+             bg-clip-text text-transparent"
+          >
+            <FilmIcon className="w-6 h-6 text-red-500" />
+            Phim Ngày
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -91,11 +99,7 @@ export default function FooterLayout() {
             items={categories}
             prefix="categories"
           />
-          <FooterColumn
-            title="Quốc gia"
-            items={countries}
-            prefix="countries"
-          />
+          <FooterColumn title="Quốc gia" items={countries} prefix="countries" />
           <FooterColumn title="Loại phim" items={types} prefix="types" />
           <FooterColumn
             title="Diễn viên nổi bật"

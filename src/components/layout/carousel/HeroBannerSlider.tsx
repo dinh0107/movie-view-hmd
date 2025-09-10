@@ -114,11 +114,10 @@ export default function HeroBannerSlider() {
 
   return (
     <div className="relative w-full aspect-video md:aspect-[21/9] lg:aspect-[21/9] min-h-[400px] sm:min-h-[500px] md:min-h-[600px] bg-black text-white overflow-hidden">
-      {/* Mobile slider */}
       <div className="absolute inset-0 block 2xl:hidden">
         <Swiper
           modules={[Autoplay]}
-          autoplay={{ delay: 5000, disableOnInteraction: false }}
+          autoplay={{ delay: 10000, disableOnInteraction: false }}
           loop
           onSlideChange={(swiper) => setActiveMovie(movies[swiper.realIndex])}
           className="h-full"
@@ -146,7 +145,6 @@ export default function HeroBannerSlider() {
         </Swiper>
       </div>
 
-      {/* Desktop backdrop */}
       <motion.div
         key={activeMovie.id}
         className="absolute inset-0 hidden 2xl:block"
@@ -163,8 +161,7 @@ export default function HeroBannerSlider() {
         <div className="absolute inset-0 bg-black/30"></div>
       </motion.div>
 
-      {/* Content */}
-      <div className="relative z-10 h-full flex flex-col justify-center px-4 sm:px-8 md:px-12 w-full">
+      <div className="relative z-10 h-webkit flex flex-col justify-center px-4 sm:px-8 md:px-12 w-full">
         <motion.div
           key={activeMovie.title}
           variants={containerVariants}
@@ -215,10 +212,6 @@ export default function HeroBannerSlider() {
               <span className="font-semibold text-red-400">Quốc gia:</span>{" "}
               {activeMovie.tags.join(", ")}
             </p>
-            {/* <p className="line-clamp-2">
-              <span className="font-semibold text-red-400">Diễn viên:</span>{" "}
-              {activeMovie.starring.join(", ")}
-            </p> */}
           </motion.div>
 
           <motion.div variants={itemVariants}>
@@ -231,14 +224,13 @@ export default function HeroBannerSlider() {
           </motion.div>
         </motion.div>
 
-        {/* Poster slider (desktop) */}
         <div className="max-h-fit max-w-[600px] bg-black/70 p-4 sm:p-6 rounded-lg absolute -right-5 hidden 2xl:block">
           <Swiper
             slidesPerView={2}
             spaceBetween={20}
             loop
             modules={[Navigation, Autoplay]}
-            autoplay={{ delay: 5000, disableOnInteraction: false }}
+            autoplay={{ delay: 10000, disableOnInteraction: false }}
             navigation={{ prevEl: ".custom-prev", nextEl: ".custom-next" }}
             onSlideChange={(swiper) => setActiveMovie(movies[swiper.realIndex])}
           >

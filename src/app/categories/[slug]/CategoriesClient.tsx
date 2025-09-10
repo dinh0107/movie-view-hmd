@@ -47,7 +47,7 @@ function Breadcrumb({ title }: { title: string }) {
 function MovieCard({ movie }: { movie: ApiMovie }) {
   const poster = movie.poster_url || movie.thumb_url;
   return (
-    <article className="group relative overflow-hidden rounded-2xl bg-white/5 ring-1 ring-white/10 shadow-lg">
+    <article className="group relative overflow-hidden rounded-2xl bg-white/5 ring-1 ring-white/10 shadow-lg min-h-[150px] aspect-[2/3]">
       <a href={`/movies/${movie.slug}`} className="aspect-[2/3] w-full overflow-hidden">
         <img
           src={poster}
