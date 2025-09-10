@@ -7,6 +7,7 @@ import { MenuProvider } from "@/context/MenuContext";
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
+import BottomAdBanner from "@/components/ui/Ads";
 
 const SITE_URL = "https://www.phimngay.top/";
 
@@ -78,7 +79,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="vi">
       <head>
         <meta name="monetag" content="dc0b7a9e690910128eaa099f540b4082" />
-
+        {/* <Script id="groleegni" strategy="afterInteractive">
+        {`(function(s){
+            s.dataset.zone='9852719';
+            s.src='https://groleegni.net/vignette.min.js';
+        })([document.documentElement, document.body]
+            .filter(Boolean).pop()
+            .appendChild(document.createElement('script')));`}
+      </Script> */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -101,10 +109,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <MenuProvider>
           <HeaderLayout />
           {children}
+            <BottomAdBanner />
           <Analytics />
           <SpeedInsights />
           <FooterLayout />
         </MenuProvider>
+        <script type='text/javascript' src='//pl27607255.revenuecpmgate.com/53/97/f1/5397f120c7c37e17c9c154ad51c3e672.js'></script>
       </body>
     </html>
   );
