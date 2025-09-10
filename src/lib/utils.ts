@@ -1,4 +1,5 @@
 import { clsx, type ClassValue } from "clsx"
+import { u } from "framer-motion/client";
 import { twMerge } from "tailwind-merge"
 export type Movie = {
   slug: string;
@@ -8,15 +9,21 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function normalizeImage(url?: string | null) {
-  if (!url) return "/no-image.jpg";
+// export function normalizeImage(url?: string | null) {
+//   if (!url) return "/no-image.jpg";
+//     console.log(url)
+//   if (/^https?:\/\//i.test(url)) {
+//     return url;
+//   }
+//   const path = url.replace(/^\/+/, "");
+//   return `https://phimapi.com/image.php?url=/${path}`;
+// }
+export function normalizeImage(url?: string): string {
+  if (!url) return "";
 
-  if (/^https?:\/\//i.test(url)) {
-    return url;
-  }
+  if (url.startsWith("http")) return url;
 
-  const path = url.replace(/^\/+/, "");
-  return `https://phimapi.com/image.php?url=/${path}`;
+  return `https://phimapi.com/image.php?url=https://phimimg.com/${url.startsWith("/") ? url.slice(1) : url}`;
 }
 
 

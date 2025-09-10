@@ -1,5 +1,5 @@
 "use client";
-import { normalizeTrailer } from "@/lib/utils";
+import { normalizeImage, normalizeTrailer } from "@/lib/utils";
 import type {
   EpisodeServer,
   EpisodeSource,
@@ -66,13 +66,13 @@ export default function MovieDetailPage({ slug }: { slug: string }) {
         }))
         .filter(Boolean),
       overview: data.content ?? "",
-      backdrop: data.thumb_url,
-      poster: data.poster_url,
+      backdrop: normalizeImage(data.thumb_url),
+      poster: normalizeImage(data.poster_url),
       stills: [
-        data.thumb_url,
-        data.poster_url,
-        data.thumb_url,
-        data.poster_url,
+        normalizeImage(data.thumb_url),
+        normalizeImage(data.poster_url),
+        normalizeImage(data.thumb_url),
+        (data.poster_url),
       ].filter(Boolean) as string[],
       trailer: data.trailer_url || null,
       cast,
@@ -230,11 +230,10 @@ export default function MovieDetailPage({ slug }: { slug: string }) {
             <button
               key={t.key}
               onClick={() => setActiveTab(t.key as any)}
-              className={`mr-1 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition cursor-pointer ${
-                activeTab === (t.key as any)
+              className={`mr-1 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition cursor-pointer ${activeTab === (t.key as any)
                   ? "bg-white text-black shadow"
                   : "text-white/80 hover:bg-white/10"
-              }`}
+                }`}
             >
               {t.icon}
               {t.label}

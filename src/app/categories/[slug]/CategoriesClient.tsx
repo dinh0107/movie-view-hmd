@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useMenu } from "@/context/MenuContext";
+import { normalizeImage } from "@/lib/utils";
 
 type ApiMovie = {
   id: string;
@@ -141,12 +142,8 @@ export default function MoviesPage() {
             id: item._id || item.id,
             name: item.name,
             slug: item.slug,
-            poster_url: item.poster_url
-              ? `https://phimimg.com/${item.poster_url}`
-              : "",
-            thumb_url: item.thumb_url
-              ? `https://phimimg.com/${item.thumb_url}`
-              : "",
+            poster_url: normalizeImage(item.poster_url),
+            thumb_url: normalizeImage(item.thumb_url),
             year: Number(item.year) || 0,
             episode_current: item.episode_current || "",
           })) ?? [];
