@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     template: "%s | Phim ngay",
   },
   description:
-    "Phim ngay - Website xem phim online miễn phí, chất lượng HD, cập nhật phim mới nhất nhanh chóng. Thưởng thức kho phim đa dạng từ hành động, tình cảm đến hoạt hình.",
+    "Phim Ngay là website xem phim online miễn phí, chất lượng HD. Cập nhật phim mới nhanh chóng, đa dạng thể loại: hành động, tình cảm, kinh dị, hoạt hình, anime. Giao diện thân thiện, không cần đăng ký, xem mượt trên mọi thiết bị.",
   alternates: {
     canonical: "/",
     languages: { "vi-VN": "/" },
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     siteName: "Phim ngay",
     title: "Phim ngay - Xem Phim Online HD, Phim Mới Cập Nhật Nhanh",
     description:
-      "Xem phim online miễn phí, HD, cập nhật nhanh. Kho phim đa dạng: hành động, tình cảm, hoạt hình...",
+      "Phim Ngay là website xem phim online miễn phí, chất lượng HD. Cập nhật phim mới nhanh chóng, đa dạng thể loại: hành động, tình cảm, kinh dị, hoạt hình, anime. Giao diện thân thiện, không cần đăng ký, xem mượt trên mọi thiết bị.",
     locale: "vi_VN",
     images: [
       { url: "/og/og-home.jpg", width: 1200, height: 630, alt: "Phim ngay - Xem Phim Online HD" },
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Phim ngay - Xem Phim Online HD, Phim Mới Cập Nhật Nhanh",
     description:
-      "Xem phim online miễn phí, HD, cập nhật nhanh. Kho phim đa dạng: hành động, tình cảm, hoạt hình...",
+      "Phim Ngay là website xem phim online miễn phí, chất lượng HD. Cập nhật phim mới nhanh chóng, đa dạng thể loại: hành động, tình cảm, kinh dị, hoạt hình, anime. Giao diện thân thiện, không cần đăng ký, xem mượt trên mọi thiết bị.",
     images: ["/og/og-home.jpg"],
   },
   icons: {
@@ -78,7 +78,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="vi">
       <head>
-        <meta name="monetag" content="dc0b7a9e690910128eaa099f540b4082" />
+        {/* <meta name="monetag" content="dc0b7a9e690910128eaa099f540b4082" /> */}
         {/* <Script id="groleegni" strategy="afterInteractive">
         {`(function(s){
             s.dataset.zone='9852719';
@@ -87,6 +87,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             .filter(Boolean).pop()
             .appendChild(document.createElement('script')));`}
       </Script> */}
+        <Script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-CVV3RVL1X1"
+        />
+        <Script id="google-analytics">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-CVV3RVL1X1');
+          `}
+        </Script>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -103,31 +115,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             }),
           }}
         />
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-CVV3RVL1X1"
-          strategy="afterInteractive"
-        />
-        <Script id="ga4-init" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-CVV3RVL1X1');
-          `}
-        </Script>
+
       </head>
 
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black`}>
         <MenuProvider>
           <HeaderLayout />
           {children}
-            <BottomAdBanner />
+          <BottomAdBanner />
           <Analytics />
           <SpeedInsights />
           <FooterLayout />
         </MenuProvider>
         <script type='text/javascript' src='//pl27607255.revenuecpmgate.com/53/97/f1/5397f120c7c37e17c9c154ad51c3e672.js'></script>
-        
+
       </body>
     </html>
   );
