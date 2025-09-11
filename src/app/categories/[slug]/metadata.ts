@@ -68,7 +68,7 @@ export async function generateMetadata({
   const images = ogImages.length > 0 ? ogImages.slice(0, 3) : cover ? [cover] : undefined;
 
   const canonical = `/categories/${normalizedSlug}`;
-  console.log("canonical:", canonical)
+
   return {
     title,
     description,

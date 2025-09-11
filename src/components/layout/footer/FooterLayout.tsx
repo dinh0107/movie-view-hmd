@@ -60,15 +60,11 @@ export default function FooterLayout() {
               <ul key={i} className="space-y-2">
                 {col.map((item, j) => (
                   <li key={j}>
-                    <Link
-                      href={`/${prefix}/${item
-                        .toLowerCase()
-                        .replace(/\s/g, "-")}`}
-                        prefetch={false}
+                    <a
                       className="hover:text-red-400 transition"
                     >
                       {item}
-                    </Link>
+                    </a>
                   </li>
                 ))}
               </ul>
@@ -90,7 +86,7 @@ export default function FooterLayout() {
              bg-clip-text text-transparent"
           >
             <FilmIcon className="w-6 h-6 text-red-500" />
-            Phim Ngày
+            Phim Ngay
           </Link>
         </div>
 
