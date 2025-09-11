@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { apiGet } from "@/services/axiosClient";
 
+const SITE_URL = "https://www.phimngay.top";
+
 const toAbsolute = (u: string) =>
   /^https?:\/\//i.test(u) ? u : `https://phimimg.com/${u.replace(/^\/+/, "")}`;
 
-// Map slug đặc biệt
 const SLUG_MAP: Record<string, string> = {
   "phim-moi-cap-nhat": "Phim mới cập nhật",
   "phim-le": "Phim lẻ",
@@ -13,18 +14,50 @@ const SLUG_MAP: Record<string, string> = {
   "tv-shows": "TV Shows",
 };
 
-const normalizeSlug = (s: string) => {
-  return s
+const normalizeSlug = (s: string) =>
+  s
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") 
+    .replace(/[\u0300-\u036f]/g, "") // remove dấu
     .replace(/đ/g, "d")
     .replace(/Đ/g, "D")
     .toLowerCase();
-};
 
 const prettyFromSlug = (slug: string) =>
   SLUG_MAP[slug] ||
   slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+/**
+ * Sinh metadata chuẩn SEO từ slug + dữ liệu API
+ */
+function normalizeMeta({
+  slug,
+  seo,
+  p,
+}: {
+  slug: string;
+  seo?: any;
+  p?: any;
+}): { title: string; description: string; images: string[] } {
+  const pretty = prettyFromSlug(slug);
+  const year = new Date().getFullYear();
+
+  const title =
+    seo?.titleHead ||
+    p?.titlePage ||
+    `${pretty} Mới Nhất ${year} | Xem ${pretty} Vietsub HD - Phim Ngay`;
+
+  const description =
+    seo?.descriptionHead ||
+    p?.descriptionPage ||
+    `Tuyển chọn ${pretty.toLowerCase()} mới nhất ${year}, vietsub chất lượng HD. Xem ${pretty.toLowerCase()} trọn bộ, cập nhật nhanh chóng trên Phim Ngay.`;
+
+  const images = (seo?.og_image ?? [])
+    .map(toAbsolute)
+    .filter(Boolean)
+    .slice(0, 3);
+
+  return { title, description, images };
+}
 
 export async function generateMetadata({
   params,
@@ -34,9 +67,8 @@ export async function generateMetadata({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const normalizedSlug = normalizeSlug(slug)
+  const normalizedSlug = normalizeSlug(slug);
   const sp = await searchParams;
-
 
   const pick = (k: string) => {
     const v = sp?.[k];
@@ -51,15 +83,10 @@ export async function generateMetadata({
     limit: String(pick("limit") ?? 15),
   });
 
-  const category = pick("category");
-  const country  = pick("country");
-  const sortLang = pick("sort_lang");
-  const year     = pick("year");
-
-  if (category) q.set("category", category);
-  if (country)  q.set("country", country);
-  if (!isNewest && sortLang) q.set("sort_lang", sortLang);
-  if (year) q.set("year", year);
+  if (pick("category")) q.set("category", String(pick("category")));
+  if (pick("country")) q.set("country", String(pick("country")));
+  if (!isNewest && pick("sort_lang")) q.set("sort_lang", String(pick("sort_lang")));
+  if (pick("year")) q.set("year", String(pick("year")));
 
   const path = `/danh-sach/${encodeURIComponent(slug)}?${q.toString()}`;
   const res = await apiGet<any>(path, {
@@ -70,21 +97,7 @@ export async function generateMetadata({
   const p = isNewest ? (res ?? {}) : (res?.data ?? {});
   const seo = p?.seoOnPage ?? {};
 
-  const pretty = prettyFromSlug(slug);
-
-  const title =
-    seo.titleHead ||
-    p?.titlePage ||
-    `${pretty}`;
-
-  const description =
-    seo.descriptionHead ||
-    "Xem phim online miễn phí, chất lượng HD, tốc độ cao, không quảng cáo.";
-
-  const images = (seo.og_image ?? [])
-    .map(toAbsolute)
-    .filter(Boolean)
-    .slice(0, 3); 
+  const { title, description, images } = normalizeMeta({ slug, seo, p });
 
   const canonical = `/types/${normalizedSlug}`;
 
@@ -92,11 +105,11 @@ export async function generateMetadata({
     title,
     description,
     alternates: {
-      canonical, 
+      canonical: `${SITE_URL}${canonical}`,
     },
     openGraph: {
-      type: seo.og_type || "website",
-      url: `https://www.phimngay.top${canonical}`,
+      type: seo?.og_type || "website",
+      url: `${SITE_URL}${canonical}`,
       title,
       description,
       images: images.length ? images : undefined,
