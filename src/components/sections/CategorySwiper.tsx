@@ -35,7 +35,7 @@ export default function CategorySwiper({ movies }: { movies: MovieItem[] }) {
         {movies.map((m) => (
           <SwiperSlide key={m.id}>
             <Link
-              href={`/movie/${m.slug}`}
+              href={`/movie/${m.slug}`} prefetch={false}
               className="block overflow-hidden rounded-xl bg-white/5 ring-1 ring-white/10 hover:bg-white/10"
             >
               <img
