@@ -26,7 +26,7 @@ interface Taxonomy {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://phimngay.top";
+  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.phimngay.top";
   const now = new Date();
   const MAX_PAGE = Number(process.env.SITEMAP_MAX_PAGE ?? 10);
 
