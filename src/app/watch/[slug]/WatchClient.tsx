@@ -316,7 +316,6 @@ export default function WatchPage() {
     </main>
   );
 }
-
 function SmartPlayer({
   m3u8,
   embed,
@@ -326,7 +325,10 @@ function SmartPlayer({
   embed: string | null;
   title: string;
 }) {
-  if (m3u8) return <HlsVideo src={m3u8} title={title} />;
+  if (m3u8) {
+    return <HlsVideo src={m3u8} title={title} />;
+  }
+
   if (embed) {
     const url = withAutoplay(embed);
     return (
@@ -341,6 +343,7 @@ function SmartPlayer({
       />
     );
   }
+
   return (
     <div className="h-full w-full grid place-items-center text-white/70">
       <div className="flex items-center gap-2">
@@ -357,7 +360,7 @@ function HlsVideo({ src, title }: { src: string; title: string }) {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-
+   video.autoplay = true;
     if (video.canPlayType("application/vnd.apple.mpegurl")) {
       video.src = src;
       video.play().catch(() => { });
@@ -394,7 +397,7 @@ function HlsVideo({ src, title }: { src: string; title: string }) {
   }, [src]);
 
   return (
-    <video
+   <video
       ref={videoRef}
       className="h-full w-full"
       controls
@@ -402,6 +405,8 @@ function HlsVideo({ src, title }: { src: string; title: string }) {
       preload="auto"
       poster=""
       aria-label={title}
+      autoPlay 
+      muted 
     />
   );
 }

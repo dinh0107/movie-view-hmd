@@ -20,15 +20,14 @@ export async function generateMetadata({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const normalizedSlug = normalizeSlug(slug)
+  const normalizedSlug = normalizeSlug(slug);
+
   const sp = await searchParams;
 
   const pick = (k: string) => {
     const v = sp?.[k];
     return Array.isArray(v) ? v[0] : v;
   };
-  console.log("canonical:", normalizedSlug)
-  console.log("sp:", sp)
 
   const q = new URLSearchParams({
     page: String(pick("page") ?? 1),
@@ -45,18 +44,10 @@ export async function generateMetadata({
   const seo = data?.seoOnPage ?? {};
 
   const pretty = prettyFromSlug(normalizedSlug);
-  const title =
-    seo.titleHead ||
-    data?.titlePage ||
-    `${pretty}`;
+  const title = seo.titleHead || data?.titlePage || `${pretty}`;
+  const description = seo.descriptionHead || `Xem phim ${pretty} online miễn phí, chất lượng HD, cập nhật nhanh.`;
 
-  const description =
-    seo.descriptionHead ||
-    `Xem phim ${pretty} online miễn phí, chất lượng HD, cập nhật nhanh.`;
-
-  const ogImages = (seo.og_image ?? [])
-    .map(toAbsolute)
-    .filter(Boolean);
+  const ogImages = (seo.og_image ?? []).map(toAbsolute).filter(Boolean);
 
   let cover: string | undefined;
   if (ogImages.length === 0 && data?.items?.length > 0) {
@@ -66,7 +57,6 @@ export async function generateMetadata({
   }
 
   const images = ogImages.length > 0 ? ogImages.slice(0, 3) : cover ? [cover] : undefined;
-
   const canonical = `/categories/${normalizedSlug}`;
 
   return {

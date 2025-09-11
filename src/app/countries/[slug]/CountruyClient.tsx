@@ -114,8 +114,7 @@ export default function MoviesPage() {
   const [category, setCategory] = React.useState("");
   const [lang, setLang] = React.useState("");
   const [year, setYear] = React.useState("");
-
-  const { categories } = useMenu();
+  const { categories, countries } = useMenu();
 
   React.useEffect(() => {
     setMovies([]);
@@ -323,6 +322,23 @@ export default function MoviesPage() {
               </Pagination>
             </div>
           )}
+
+           <div className="mt-12">
+            <h2 className="text-lg sm:text-xl font-semibold text-white mb-4">
+              Danh mục liên quan
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {categories.map((cat) => (
+                <a
+                  key={cat.slug}
+                  href={`/countries/${cat.slug}`}
+                  className="text-sm bg-gray-800 text-white/90 hover:bg-red-600 hover:text-white transition px-3 py-1.5 rounded-full border border-white/10"
+                >
+                  {cat.name}
+                </a>
+              ))}
+            </div>
+          </div>
         </section>
       </main>
     </div>

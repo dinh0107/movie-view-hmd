@@ -19,10 +19,10 @@ const stripHtml = (html?: string) =>
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 }): Promise<Metadata> {
-  const { slug } = await params;
-  const normalizedSlug = normalizeSlug(slug)
+  const slug = params.slug;
+  const normalizedSlug = normalizeSlug(slug);
   let payload: any = {};
   let errored = false;
 

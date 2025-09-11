@@ -112,7 +112,7 @@ export default function MoviesPage() {
   const [lang, setLang] = React.useState("");
   const [year, setYear] = React.useState("");
 
-  const { countries } = useMenu();
+  const { categories, countries } = useMenu();
 
   React.useEffect(() => {
     setMovies([]);
@@ -127,9 +127,9 @@ export default function MoviesPage() {
         setLoading(true);
         const res = await apiGet<any>(
           `/the-loai/${slug}?page=${page}&limit=15` +
-            (country ? `&country=${country}` : "") +
-            (lang ? `&sort_lang=${lang}` : "") +
-            (year ? `&year=${year}` : ""),
+          (country ? `&country=${country}` : "") +
+          (lang ? `&sort_lang=${lang}` : "") +
+          (year ? `&year=${year}` : ""),
           { baseKey: "phim_v1" }
         );
         const data = res?.data ?? {};
@@ -320,6 +320,23 @@ export default function MoviesPage() {
               </Pagination>
             </div>
           )}
+          <section className="mt-12">
+            <h2 className="text-lg sm:text-xl font-semibold text-white mb-4">
+              Danh mục liên quan
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {categories.map((cat) => (
+                <a
+                  key={cat.slug}
+                  href={`/categories/${cat.slug}`}
+                  className="text-sm bg-gray-800 text-white/90 hover:bg-red-600 hover:text-white transition px-3 py-1.5 rounded-full border border-white/10"
+                >
+                  {cat.name}
+                </a>
+              ))}
+            </div>
+          </section>
+
         </section>
       </main>
     </div>

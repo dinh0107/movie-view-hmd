@@ -20,8 +20,9 @@ export async function generateMetadata({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const normalizedSlug = normalizeSlug(slug)
   const sp = await searchParams;
+
+  const normalizedSlug = normalizeSlug(slug);
 
   const pick = (k: string) => {
     const v = sp?.[k];
@@ -35,13 +36,14 @@ export async function generateMetadata({
     page: String(page),
     limit: String(limit),
   });
-  const country  = pick("country");    
-  const sortLang = pick("sort_lang");
-  const year     = pick("year");
 
-  if (country)  q.set("country", country);
+  const country = pick("country");
+  const sortLang = pick("sort_lang");
+  const year = pick("year");
+
+  if (country) q.set("country", country);
   if (sortLang) q.set("sort_lang", sortLang);
-  if (year)     q.set("year", year);
+  if (year) q.set("year", year);
 
   const path = `/quoc-gia/${encodeURIComponent(slug)}?${q.toString()}`;
 
@@ -61,8 +63,7 @@ export async function generateMetadata({
   const title = page > 1 ? `${baseTitle} - Trang ${page}` : baseTitle;
 
   const description =
-    seo.descriptionHead ||
-    `Xem phim ${pretty} online miễn phí, chất lượng HD, cập nhật nhanh.`;
+    seo.descriptionHead || `Xem phim ${pretty} online miễn phí, chất lượng HD, cập nhật nhanh.`;
 
   const ogImages = (seo.og_image ?? [])
     .map(toAbsolute)

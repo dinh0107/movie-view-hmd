@@ -322,15 +322,6 @@ export default function MovieDetailPage({ slug }: { slug: string }) {
           </div>
         </div>
       )}
-      <div className="mt-8">
-        <div
-          className="fb-comments"
-          data-href={`https://www.phimngay.top/movie/${data?.slug}`}
-          data-width="100%"
-          data-numposts="10"
-        ></div>
-      </div>
-
       <div className="container mx-auto px-4 pt-2">
         {movie.genres?.length > 0 && related.length > 0 && (
           <CategorySwiper
