@@ -94,6 +94,19 @@ function MovieCard({ movie }: { movie: ApiMovie }) {
     </article>
   );
 }
+const SLUG_MAP: Record<string, string> = {
+    "phim-moi-cap-nhat": "Phim mới cập nhật",
+    "phim-le": "Phim lẻ",
+    "phim-bo": "Phim bộ",
+    "hoat-hinh": "Phim Hoạt hình",
+    "tv-shows": "TV Shows",
+  };
+
+  const toPretty = (s: string) =>
+    s
+      .replace(/^\/+|\/+$/g, "")
+      .replace(/-/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase());
 
 export default function MoviesPage() {
   const params = useParams<{ slug: string }>();
@@ -104,7 +117,9 @@ export default function MoviesPage() {
   const [totalPages, setTotalPages] = React.useState(1);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [categoryTitle, setCategoryTitle] = React.useState("Movies");
+  const initialTitle =
+    SLUG_MAP[slug ?? ""] ?? (slug ? toPretty(slug) : "Danh sách phim");
+  const [categoryTitle, setCategoryTitle] = React.useState(initialTitle);
 
   // bộ lọc
   const [category, setCategory] = React.useState("");
@@ -113,8 +128,8 @@ export default function MoviesPage() {
   const [year, setYear] = React.useState("");
 
   const { categories, countries } = useMenu();
+  
 
-  // reset khi đổi slug hoặc filter
   React.useEffect(() => {
     setMovies([]);
     setPage(1);
@@ -205,25 +220,13 @@ export default function MoviesPage() {
       ac.abort();
     };
   }, [slug, page, category, country, lang, year]);
-  const SLUG_MAP: Record<string, string> = {
-    "phim-moi-cap-nhat": "Phim mới cập nhật",
-    "phim-le": "Phim lẻ",
-    "phim-bo": "Phim bộ",
-    "hoat-hinh": "Hoạt hình",
-    "tv-shows": "TV Shows",
-  };
 
-  const toPretty = (s: string) =>
-    s
-      .replace(/^\/+|\/+$/g, "")
-      .replace(/-/g, " ")
-      .replace(/\b\w/g, (c) => c.toUpperCase());
 
   const displayTitle = categoryTitle ?? SLUG_MAP[slug] ?? toPretty(slug);
 
   return (
     <div className="min-h-screen pb-6 bg-black text-white">
-      <Breadcrumb title={`Danh sách: ${displayTitle}`} />
+      <Breadcrumb title={displayTitle} />
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
         {/* Filter bar */}

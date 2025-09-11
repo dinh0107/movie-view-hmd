@@ -30,10 +30,13 @@ export const metadata: Metadata = {
   },
   description:
     "Phim Ngay là website xem phim online miễn phí, chất lượng HD. Cập nhật phim mới nhanh chóng, đa dạng thể loại: hành động, tình cảm, kinh dị, hoạt hình, anime. Giao diện thân thiện, không cần đăng ký, xem mượt trên mọi thiết bị.",
-  alternates: {
-    canonical: "/",
-    languages: { "vi-VN": "/" },
+alternates: {
+  canonical: SITE_URL, 
+  languages: {
+    "vi-VN": SITE_URL, 
   },
+},
+
   robots: {
     index: true,
     follow: true,
