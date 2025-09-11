@@ -7,9 +7,10 @@ const toAbsolute = (u: string) =>
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<Metadata> {
-  const q = Array.isArray(searchParams?.q) ? searchParams.q[0] : searchParams?.q;
+  const sp = await searchParams;
+  const q = Array.isArray(sp?.q) ? sp.q[0] : sp?.q;
 
   let data: any = null;
   try {
