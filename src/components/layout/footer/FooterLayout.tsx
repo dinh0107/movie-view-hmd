@@ -64,6 +64,7 @@ export default function FooterLayout() {
                       href={`/${prefix}/${item
                         .toLowerCase()
                         .replace(/\s/g, "-")}`}
+                        prefetch={false}
                       className="hover:text-red-400 transition"
                     >
                       {item}
