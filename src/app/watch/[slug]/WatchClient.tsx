@@ -3,19 +3,21 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Hls from "hls.js";
-import { movieDetailService } from "@/services/apiService";
+import { movieDetailService, movieService } from "@/services/apiService";
 import type {
   EpisodeServer,
   EpisodeSource,
   MovieDetail,
 } from "@/services/apiService";
 import { Play, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import CategorySwiper from "@/components/sections/CategorySwiper";
+import { normalizeImage } from "@/lib/utils";
 
 export default function WatchPage() {
   const { slug } = useParams<{ slug: string }>();
   const search = useSearchParams();
   const router = useRouter();
-
+  const [related, setRelated] = useState<any[]>([]);
   const HISTORY_KEY = slug ? `watch:${slug}` : "";
   const parseIntSafe = (v: any, fallback = 0) => {
     const n = Number(v);
@@ -34,7 +36,7 @@ export default function WatchPage() {
           const saved = JSON.parse(raw) as { serverIdx: number; epIdx: number };
           return parseIntSafe(saved.serverIdx, 0);
         }
-      } catch {}
+      } catch { }
     }
     return 0;
   });
@@ -48,7 +50,7 @@ export default function WatchPage() {
           const saved = JSON.parse(raw) as { serverIdx: number; epIdx: number };
           return parseIntSafe(saved.epIdx, 0);
         }
-      } catch {}
+      } catch { }
     }
     return 0;
   });
@@ -98,8 +100,31 @@ export default function WatchPage() {
         HISTORY_KEY,
         JSON.stringify({ serverIdx, epIdx, t: Date.now() })
       );
-    } catch {}
+    } catch { }
   }, [HISTORY_KEY, serverIdx, epIdx]);
+
+  useEffect(() => {
+    if (!detail?.category?.length) return;
+
+    Promise.all(
+      detail.category.map((cat) =>
+        movieService.getMoviesByCategory(cat.slug ?? "").catch(() => [])
+      )
+    ).then((lists) => {
+      const merged = lists.flat();
+      const unique = merged.filter(
+        (m, i, arr) => arr.findIndex((x) => x.slug === m.slug) === i
+      );
+      const filtered = unique.filter((m) => m.slug !== detail.slug);
+      setRelated(filtered);
+    });
+  }, [detail]);
+  useEffect(() => {
+    if (window.FB) {
+      window.FB.XFBML.parse();
+    }
+  }, [detail?.slug]);
+
 
   const servers: EpisodeServer[] = detail?.episodes ?? [];
   const eps: EpisodeSource[] = servers[serverIdx]?.server_data ?? [];
@@ -156,11 +181,10 @@ export default function WatchPage() {
               <button
                 key={`${sv.server_name}-${i}`}
                 onClick={() => setServerIdx(i)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-semibold ring-1 transition ${
-                  i === serverIdx
-                    ? "bg-white text-black ring-white/10"
-                    : "text-white/80 bg-white/5 hover:bg-white/10 ring-white/10"
-                }`}
+                className={`px-3 py-1.5 rounded-lg text-sm font-semibold ring-1 transition ${i === serverIdx
+                  ? "bg-white text-black ring-white/10"
+                  : "text-white/80 bg-white/5 hover:bg-white/10 ring-white/10"
+                  }`}
               >
                 {sv.server_name}
               </button>
@@ -223,11 +247,10 @@ export default function WatchPage() {
                   <button
                     key={`${i}-${ep.name}`}
                     onClick={() => setEpIdx(i)}
-                    className={`h-10 rounded-lg text-sm cursor-pointer font-semibold ring-1 ring-white/10 transition ${
-                      i === epIdx
-                        ? "bg-white text-black"
-                        : "bg-white/10 hover:bg-white/15"
-                    }`}
+                    className={`h-10 rounded-lg text-sm cursor-pointer font-semibold ring-1 ring-white/10 transition ${i === epIdx
+                      ? "bg-white text-black"
+                      : "bg-white/10 hover:bg-white/15"
+                      }`}
                     title={ep.name ?? `Tập ${i + 1}`}
                   >
                     {ep.name ?? `Tập ${i + 1}`}
@@ -267,7 +290,28 @@ export default function WatchPage() {
           <p className="text-white/80 leading-7">{detail.content || "—"}</p>
         </div>
       </div>
+      <div className="container mx-auto px-4 pt-2">
+          <div
+            className="fb-comments"
+            data-href={`https://www.phimngay.top/movie/${detail?.slug}`}
+            data-width="100%"
+            data-numposts="10"
+          ></div>
+        </div>
 
+        <div className="container mx-auto px-4 pt-2">
+          {detail.genres.length > 0 && related.length > 0 && (
+            <CategorySwiper
+              movies={related.map((m) => ({
+                id: m.id,
+                title: m.name,
+                slug: m.slug,
+                poster: normalizeImage(m.poster_url),
+                year: m.year,
+              }))}
+            />
+          )}
+        </div>
       <div className="py-10" />
     </main>
   );
@@ -316,7 +360,7 @@ function HlsVideo({ src, title }: { src: string; title: string }) {
 
     if (video.canPlayType("application/vnd.apple.mpegurl")) {
       video.src = src;
-      video.play().catch(() => {});
+      video.play().catch(() => { });
       return;
     }
 
@@ -344,7 +388,7 @@ function HlsVideo({ src, title }: { src: string; title: string }) {
     return () => {
       try {
         hlsRef.current?.destroy();
-      } catch {}
+      } catch { }
       if (video) video.removeAttribute("src");
     };
   }, [src]);

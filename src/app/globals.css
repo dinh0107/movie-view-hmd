@@ -1,5 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "swiper/css";
+@import "swiper/css/navigation";
+@import "swiper/css/pagination";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -156,4 +159,28 @@
 /* Banner css */
 .h-webkit {
   height: -webkit-fill-available;
+}
+.swiper-button-next,
+.swiper-button-prev {
+  @apply !w-10 !h-10 !rounded-full !bg-white/20 !backdrop-blur-sm 
+         !flex !items-center !justify-center !text-white hover:!bg-white/40;
+}
+
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  @apply !text-lg !font-bold;
+}
+
+.swiper-button-prev,
+.swiper-button-next {
+  top: 50% !important;         
+  transform: translateY(-50%);  
+}
+
+.swiper-button-prev {
+  left: 0 !important;        
+}
+
+.swiper-button-next {
+  right: 0 !important;       
 }

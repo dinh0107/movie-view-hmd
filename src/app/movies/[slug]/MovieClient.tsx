@@ -1,17 +1,22 @@
 "use client";
+import CategorySwiper from "@/components/sections/CategorySwiper";
 import { normalizeImage, normalizeTrailer } from "@/lib/utils";
 import type {
   EpisodeServer,
   EpisodeSource,
   MovieDetail,
 } from "@/services/apiService";
-import { movieDetailService } from "@/services/apiService";
+import { movieDetailService, movieService, MovieService } from "@/services/apiService";
 import { BadgeInfo, Clock, Film, Loader2, Play, Star, Tv } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
-
+declare global {
+  interface Window {
+    FB: any;
+  }
+}
 export default function MovieDetailPage({ slug }: { slug: string }) {
   const [activeTab, setActiveTab] = useState<
     "overview" | "cast" | "photos" | "more" | "episodes"
@@ -21,6 +26,10 @@ export default function MovieDetailPage({ slug }: { slug: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const [related, setRelated] = useState<any[]>([]);
+
+
+
 
   useEffect(() => {
     if (!slug) return;
@@ -40,6 +49,7 @@ export default function MovieDetailPage({ slug }: { slug: string }) {
       .finally(() => setLoading(false));
 
     return () => controller.abort();
+
   }, [slug]);
 
   const movie = useMemo(() => {
@@ -79,11 +89,33 @@ export default function MovieDetailPage({ slug }: { slug: string }) {
       slug: data.slug,
     };
   }, [data]);
-
   const trailerUrl = useMemo(
     () => normalizeTrailer(movie?.trailer || ""),
     [movie?.trailer]
   );
+  useEffect(() => {
+    if (!data?.category?.length) return;
+
+    Promise.all(
+      data.category.map((cat) =>
+        movieService.getMoviesByCategory(cat.slug ?? "").catch(() => [])
+      )
+    ).then((lists) => {
+      const merged = lists.flat();
+      const unique = merged.filter(
+        (m, i, arr) => arr.findIndex((x) => x.slug === m.slug) === i
+      );
+      const filtered = unique.filter((m) => m.slug !== data.slug);
+      setRelated(filtered);
+    });
+  }, [data]);
+
+  useEffect(() => {
+    if (window.FB) {
+      window.FB.XFBML.parse();
+    }
+  }, [data?.slug]);
+
 
   if (loading) {
     return (
@@ -231,8 +263,8 @@ export default function MovieDetailPage({ slug }: { slug: string }) {
               key={t.key}
               onClick={() => setActiveTab(t.key as any)}
               className={`mr-1 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition cursor-pointer ${activeTab === (t.key as any)
-                  ? "bg-white text-black shadow"
-                  : "text-white/80 hover:bg-white/10"
+                ? "bg-white text-black shadow"
+                : "text-white/80 hover:bg-white/10"
                 }`}
             >
               {t.icon}
@@ -290,6 +322,29 @@ export default function MovieDetailPage({ slug }: { slug: string }) {
           </div>
         </div>
       )}
+      <div className="mt-8">
+        <div
+          className="fb-comments"
+          data-href={`https://www.phimngay.top/movie/${data?.slug}`}
+          data-width="100%"
+          data-numposts="10"
+        ></div>
+      </div>
+
+      <div className="container mx-auto px-4 pt-2">
+        {movie.genres?.length > 0 && related.length > 0 && (
+          <CategorySwiper
+            movies={related.map((m) => ({
+              id: m.id,
+              title: m.name,
+              slug: m.slug,
+              poster: normalizeImage(m.poster_url),
+              year: m.year,
+            }))}
+          />
+        )}
+      </div>
+
       <div className="py-10" />
     </main>
   );
@@ -445,7 +500,7 @@ function Overview({
         <p className="mt-3 text-white/80 leading-7">{overview}</p>
       </div>
 
-      <div className="rounded-2xl bg-white/5 p-3 ring-1 ring-white/10">
+      {/* <div className="rounded-2xl bg-white/5 p-3 ring-1 ring-white/10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {stills.map((s, i) => (
             <div key={i} className="overflow-hidden rounded-xl">
@@ -457,7 +512,7 @@ function Overview({
             </div>
           ))}
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

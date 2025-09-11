@@ -8,6 +8,7 @@ import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import BottomAdBanner from "@/components/ui/Ads";
+import FacebookSdk from "@/components/sections/FacebookSdk";
 
 const SITE_URL = "https://www.phimngay.top/";
 
@@ -122,7 +123,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               url: "https://www.phimngay.top/",
               potentialAction: {
                 "@type": "SearchAction",
-                target: "https://www.phimngay.top/tim-kiem?q={search_term_string}",
+                target:  "https://www.phimngay.top/search?query={search_term_string}",
                 "query-input": "required name=search_term_string",
               },
             }),
@@ -139,9 +140,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Analytics />
           <SpeedInsights />
           <FooterLayout />
+         <FacebookSdk />
         </MenuProvider>
         <script type='text/javascript' src='//pl27607255.revenuecpmgate.com/53/97/f1/5397f120c7c37e17c9c154ad51c3e672.js'></script>
-
       </body>
     </html>
   );

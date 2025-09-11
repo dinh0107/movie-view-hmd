@@ -44,7 +44,8 @@ export interface MovieDetail {
   actor?: string[];
   director?: string[];
   episodes?: EpisodeServer[];
-  movie?: any
+  movie?: any;
+  genres: { name: string; slug?: string }[];
 }
 
 /** Utils */
@@ -102,8 +103,8 @@ export class MovieService {
       const q = `?page=${page}&limit=${limit}`;
       const isNewest = apiPath.includes("phim-moi-cap-nhat");
       const data = await apiGet<any>(`${apiPath}${q}`, {
-        baseKey: isNewest ? "phim_root" : "phim_v1",  
-        fallbackBases: isNewest ? undefined : ["phim_root"], 
+        baseKey: isNewest ? "phim_root" : "phim_v1",
+        fallbackBases: isNewest ? undefined : ["phim_root"],
       });
       const items: any[] = data?.data?.items ?? data?.items ?? [];
       return items.map(normalizeMovie);
@@ -132,6 +133,23 @@ export class MovieService {
       episode_current: String(item.episode_current ?? ""),
     }));
   }
+
+  async getMoviesByCategory(slug: string, page = 1, limit = 30): Promise<Movie[]> {
+    try {
+      const q = `?page=${page}&limit=${limit}`;
+      const data = await apiGet<any>(`/the-loai/${slug}${q}`, {
+        baseKey: "phim_v1",
+        fallbackBases: ["phim_root"],
+      });
+
+      const items: any[] = data?.data?.items ?? data?.items ?? [];
+      return items.map(normalizeMovie);
+    } catch (err) {
+      console.error("getMoviesByCategory error:", err);
+      return [];
+    }
+  }
+
 }
 
 export class MovieDetailService {
@@ -157,6 +175,7 @@ export class MovieDetailService {
         quality: movie.quality,
         lang: movie.lang,
         type: movie.type,
+
         episode_current: movie.episode_current ?? movie.episode_total,
         content: movie.content ?? movie.description,
         trailer_url: movie.trailer_url ?? movie.trailer ?? null,
@@ -173,7 +192,10 @@ export class MovieDetailService {
         country: movie.country ?? movie.countries ?? [],
         actor: toStringArray(movie.actor ?? movie.actors),
         director: toStringArray(movie.director ?? movie.directors),
-
+        genres: (movie.category ?? movie.categories ?? []).map((c: any) => ({
+          name: c.name,
+          slug: c.slug,
+        })),
         episodes: Array.isArray(episodesRaw)
           ? episodesRaw.map(normalizeEpisodeServer)
           : [],
