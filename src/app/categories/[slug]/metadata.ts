@@ -27,6 +27,8 @@ export async function generateMetadata({
     const v = sp?.[k];
     return Array.isArray(v) ? v[0] : v;
   };
+  console.log("canonical:", normalizedSlug)
+  console.log("sp:", sp)
 
   const q = new URLSearchParams({
     page: String(pick("page") ?? 1),
@@ -65,8 +67,8 @@ export async function generateMetadata({
 
   const images = ogImages.length > 0 ? ogImages.slice(0, 3) : cover ? [cover] : undefined;
 
-  const canonical = `/the-loai/${normalizedSlug}`;
-
+  const canonical = `/categories/${normalizedSlug}`;
+  console.log("canonical:", canonical)
   return {
     title,
     description,

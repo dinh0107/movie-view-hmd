@@ -77,7 +77,7 @@ export async function generateMetadata({
   }
   const images = ogImages.length ? ogImages : cover ? [cover] : undefined;
 
-  const canonical = page > 1 ? `/quoc-gia/${normalizedSlug}?page=${page}` : `/quoc-gia/${normalizedSlug}`;
+  const canonical = page > 1 ? `/countries/${normalizedSlug}?page=${page}` : `/quoc-gia/${normalizedSlug}`;
 
   const noItems = !Array.isArray(data?.items) || data.items.length === 0;
 
