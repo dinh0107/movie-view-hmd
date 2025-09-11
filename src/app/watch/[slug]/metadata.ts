@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { apiGet } from "@/services/axiosClient";
 import { normalizeSlug } from "@/lib/utils";
 
+const SITE_URL = "https://www.phimngay.top";
+
 const toAbsolute = (u?: string) =>
   u && /^https?:\/\//i.test(u)
     ? u
@@ -24,7 +26,7 @@ export async function generateMetadata({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const normalizedSlug = normalizeSlug(slug)
+  const normalizedSlug = normalizeSlug(slug);
   const sp = await searchParams;
 
   const epParam = Array.isArray(sp?.ep) ? sp.ep[0] : sp?.ep;
@@ -43,14 +45,15 @@ export async function generateMetadata({
 
   const seo = payload?.seoOnPage ?? {};
   const mv = payload?.movie ?? payload ?? {};
+  const year = mv?.year || new Date().getFullYear();
 
   const baseTitle = seo.titleHead || mv?.name || "Xem phim online miễn phí";
-  const title = `Xem phim ${mv?.name || baseTitle}${epName}`;
+  const title = `${mv?.name || baseTitle}${epName} | Vietsub HD ${year} - Phim Ngay`;
 
   const description =
     seo.descriptionHead ||
     stripHtml(mv?.content) ||
-    `Xem phim ${mv?.name || "HD"} online miễn phí, chất lượng cao.`;
+    `Xem ${mv?.name || "phim hay"} vietsub HD, thuyết minh, trọn bộ, miễn phí. Cập nhật nhanh nhất tại Phim Ngay.`;
 
   const ogImages: string[] = (seo.og_image ?? [])
     .map(toAbsolute)
@@ -62,7 +65,8 @@ export async function generateMetadata({
   const images = (ogImages.length ? ogImages : [poster, thumb].filter(Boolean))
     .slice(0, 3) as string[] | undefined;
 
-  const canonical = `/watch/${normalizedSlug}${epParam ? `?ep=${epParam}` : ""}`;
+  const canonicalPath = `/watch/${normalizedSlug}${epParam ? `?ep=${epParam}` : ""}`;
+  const canonical = `${SITE_URL}${canonicalPath}`;
 
   return {
     title,
