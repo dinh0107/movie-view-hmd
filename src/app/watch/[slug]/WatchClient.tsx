@@ -119,12 +119,12 @@ export default function WatchPage() {
       setRelated(filtered);
     });
   }, [detail]);
+  
   useEffect(() => {
     if (window.FB) {
       window.FB.XFBML.parse();
     }
   }, [detail?.slug]);
-
 
   const servers: EpisodeServer[] = detail?.episodes ?? [];
   const eps: EpisodeSource[] = servers[serverIdx]?.server_data ?? [];
@@ -138,6 +138,17 @@ export default function WatchPage() {
     }),
     [currentEp]
   );
+
+  // Tạo title động cho H1
+  const pageTitle = useMemo(() => {
+    if (!detail) return "Xem phim online";
+    
+    const movieName = detail.name;
+    const episodeName = eps[epIdx]?.name || `Tập ${epIdx + 1}`;
+    const serverName = servers[serverIdx]?.server_name;
+    
+    return `Xem ${movieName} ${episodeName}${serverName ? ` - ${serverName}` : ""} | Phim HD Vietsub`;
+  }, [detail, eps, epIdx, servers, serverIdx]);
 
   if (loading)
     return (
@@ -154,6 +165,9 @@ export default function WatchPage() {
 
   return (
     <main className="min-h-screen bg-[#0b0e13] text-white py-3">
+      {/* SEO H1 Tag - ẩn trực quan nhưng vẫn có cho SEO */}
+      <h1 className="sr-only">{pageTitle}</h1>
+      
       <div className="container mx-auto px-4">
         <div className="aspect-video w-full overflow-hidden rounded-2xl ring-1 ring-white/10 bg-black">
           <SmartPlayer
@@ -163,14 +177,28 @@ export default function WatchPage() {
           />
         </div>
       </div>
+      
       <div className="container mx-auto px-4 py-4">
-        <h1 className="text-xl md:text-2xl font-bold">
+        {/* Đây là tiêu đề hiển thị - dùng h2 thay vì h1 */}
+        <h2 className="text-xl md:text-2xl font-bold">
           {detail.name}{" "}
           <span className="text-white/60">
             • {eps[epIdx]?.name || `Tập ${epIdx + 1}`}
           </span>
-        </h1>
+        </h2>
+        
+        {/* Thêm breadcrumb cho SEO */}
+        <nav className="mt-2 text-sm text-white/60" aria-label="Breadcrumb">
+          <ol className="flex items-center space-x-2">
+            <li><a href="/" className="hover:text-white">Trang chủ</a></li>
+            <li>›</li>
+            <li><a href={`/movie/${detail.slug}`} className="hover:text-white">{detail.name}</a></li>
+            <li>›</li>
+            <li className="text-white/80">{eps[epIdx]?.name || `Tập ${epIdx + 1}`}</li>
+          </ol>
+        </nav>
       </div>
+      
       {/* Controls */}
       <div className="container mx-auto px-4 mt-4 grid gap-4 md:grid-cols-[280px,1fr]">
         {/* Servers */}
@@ -286,36 +314,38 @@ export default function WatchPage() {
 
       <div className="container mx-auto px-4 mt-6">
         <div className="rounded-2xl bg-white/5 p-5 ring-1 ring-white/10">
-          <h3 className="font-semibold mb-2">Nội dung</h3>
+          <h3 className="font-semibold mb-2">Nội dung phim</h3>
           <p className="text-white/80 leading-7">{detail.content || "—"}</p>
         </div>
       </div>
+      
       <div className="container mx-auto px-4 pt-2">
-          <div
-            className="fb-comments"
-            data-href={`https://www.phimngay.top/movie/${detail?.slug}`}
-            data-width="100%"
-            data-numposts="10"
-          ></div>
-        </div>
+        <div
+          className="fb-comments"
+          data-href={`https://www.phimngay.top/movie/${detail?.slug}`}
+          data-width="100%"
+          data-numposts="10"
+        ></div>
+      </div>
 
-        <div className="container mx-auto px-4 pt-2">
-          {detail.genres.length > 0 && related.length > 0 && (
-            <CategorySwiper
-              movies={related.map((m) => ({
-                id: m.id,
-                title: m.name,
-                slug: m.slug,
-                poster: normalizeImage(m.poster_url),
-                year: m.year,
-              }))}
-            />
-          )}
-        </div>
+      <div className="container mx-auto px-4 pt-2">
+        {detail.genres && detail.genres.length > 0 && related.length > 0 && (
+          <CategorySwiper
+            movies={related.map((m) => ({
+              id: m.id,
+              title: m.name,
+              slug: m.slug,
+              poster: normalizeImage(m.poster_url),
+              year: m.year,
+            }))}
+          />
+        )}
+      </div>
       <div className="py-10" />
     </main>
   );
 }
+
 function SmartPlayer({
   m3u8,
   embed,
@@ -360,7 +390,8 @@ function HlsVideo({ src, title }: { src: string; title: string }) {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-   video.autoplay = true;
+    video.autoplay = true;
+    
     if (video.canPlayType("application/vnd.apple.mpegurl")) {
       video.src = src;
       video.play().catch(() => { });
@@ -397,7 +428,7 @@ function HlsVideo({ src, title }: { src: string; title: string }) {
   }, [src]);
 
   return (
-   <video
+    <video
       ref={videoRef}
       className="h-full w-full"
       controls
