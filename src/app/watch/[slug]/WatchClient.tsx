@@ -139,7 +139,7 @@ export default function WatchPage() {
     [currentEp]
   );
 
-  // Tạo title động cho H1
+
   const pageTitle = useMemo(() => {
     if (!detail) return "Xem phim online";
     
@@ -165,9 +165,17 @@ export default function WatchPage() {
 
   return (
     <main className="min-h-screen bg-[#0b0e13] text-white py-3">
-      {/* SEO H1 Tag - ẩn trực quan nhưng vẫn có cho SEO */}
-      <h1 className="sr-only">{pageTitle}</h1>
-      
+     <div className="container mx-auto px-4 py-4">
+        <nav className="mt-2 text-sm text-white/60" aria-label="Breadcrumb">
+          <ol className="flex items-center space-x-2">
+            <li><a href="/" className="hover:text-white">Trang chủ</a></li>
+            <li>›</li>
+            <li><a href={`/movie/${detail.slug}`} className="hover:text-white">{detail.name}</a></li>
+            <li>›</li>
+            <li className="text-white/80">{eps[epIdx]?.name || `Tập ${epIdx + 1}`}</li>
+          </ol>
+        </nav>
+      </div>
       <div className="container mx-auto px-4">
         <div className="aspect-video w-full overflow-hidden rounded-2xl ring-1 ring-white/10 bg-black">
           <SmartPlayer
@@ -179,15 +187,9 @@ export default function WatchPage() {
       </div>
       
       <div className="container mx-auto px-4 py-4">
-        {/* Đây là tiêu đề hiển thị - dùng h2 thay vì h1 */}
         <h2 className="text-xl md:text-2xl font-bold">
-          {detail.name}{" "}
-          <span className="text-white/60">
-            • {eps[epIdx]?.name || `Tập ${epIdx + 1}`}
-          </span>
+          {pageTitle}
         </h2>
-        
-        {/* Thêm breadcrumb cho SEO */}
         <nav className="mt-2 text-sm text-white/60" aria-label="Breadcrumb">
           <ol className="flex items-center space-x-2">
             <li><a href="/" className="hover:text-white">Trang chủ</a></li>
