@@ -1,34 +1,12 @@
 import type { Metadata } from "next";
 import { apiGet } from "@/services/axiosClient";
+import { prettyFromSlug } from "@/lib/utils";
 
 const SITE_URL = "https://www.phimngay.top";
 
-const toAbsolute = (u: string) =>
-  /^https?:\/\//i.test(u) ? u : `https://phimimg.com/${u.replace(/^\/+/, "")}`;
+const toAbsolute = (u?: string) =>
+  u && /^https?:\/\//i.test(u) ? u : u ? `https://phimimg.com/${u.replace(/^\/+/, "")}` : "";
 
-const SLUG_MAP: Record<string, string> = {
-  "phim-moi-cap-nhat": "Phim mới cập nhật",
-  "phim-le": "Phim lẻ",
-  "phim-bo": "Phim bộ",
-  "hoat-hinh": "Hoạt hình",
-  "tv-shows": "TV Shows",
-};
-
-const normalizeSlug = (s: string) =>
-  s
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // remove dấu
-    .replace(/đ/g, "d")
-    .replace(/Đ/g, "D")
-    .toLowerCase();
-
-const prettyFromSlug = (slug: string) =>
-  SLUG_MAP[slug] ||
-  slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-
-/**
- * Sinh metadata chuẩn SEO từ slug + dữ liệu API
- */
 function normalizeMeta({
   slug,
   seo,
@@ -51,24 +29,23 @@ function normalizeMeta({
     p?.descriptionPage ||
     `Tuyển chọn ${pretty.toLowerCase()} mới nhất ${year}, vietsub chất lượng HD. Xem ${pretty.toLowerCase()} trọn bộ, cập nhật nhanh chóng trên Phim Ngay.`;
 
-  const images = (seo?.og_image ?? [])
-    .map(toAbsolute)
-    .filter(Boolean)
-    .slice(0, 3);
+  const rawImages = Array.isArray(seo?.og_image) ? seo.og_image : [];
+  const images = rawImages.map(toAbsolute).filter(Boolean).slice(0, 3);
 
   return { title, description, images };
 }
 
-export async function generateMetadata({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ slug: string }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}): Promise<Metadata> {
-  const { slug } = await params;
-  const normalizedSlug = normalizeSlug(slug);
-  const sp = await searchParams;
+type PageProps = {
+  params: Promise<{ slug: string }>; 
+  searchParams: Promise<Record<string, string | string[] | undefined>>; 
+};
+
+export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
+  const resolvedParams = await params;
+  const resolvedSearchParams = await searchParams;
+  
+  const slug = resolvedParams.slug;
+  const sp = resolvedSearchParams;
 
   const pick = (k: string) => {
     const v = sp?.[k];
@@ -94,12 +71,12 @@ export async function generateMetadata({
     fallbackBases: isNewest ? undefined : ["phim_root"],
   });
 
-  const p = isNewest ? (res ?? {}) : (res?.data ?? {});
+  const p = isNewest ? res ?? {} : res?.data ?? {};
   const seo = p?.seoOnPage ?? {};
 
   const { title, description, images } = normalizeMeta({ slug, seo, p });
 
-  const canonical = `/types/${normalizedSlug}`;
+  const canonical = `/types/${slug}`; 
 
   return {
     title,

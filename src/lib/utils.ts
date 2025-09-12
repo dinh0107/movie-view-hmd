@@ -74,7 +74,18 @@ export function normalizeTrailer(input?: string | null): string | null {
 }
 
 
+export function prettyFromSlug(slug: string = ""): string {
+  if (!slug) return "";
 
+  return slug
+    .split("-") 
+    .map((word) =>
+      word.length > 0
+        ? word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        : ""
+    )
+    .join(" ");
+}
 
 export function fixApiPath(path: string) {
   const p = `/${path}`.replace(/\/+/g, "/");
