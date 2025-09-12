@@ -320,15 +320,6 @@ export default function WatchPage() {
       </div>
       
       <div className="container mx-auto px-4 pt-2">
-        <div
-          className="fb-comments"
-          data-href={`https://www.phimngay.top/movie/${detail?.slug}`}
-          data-width="100%"
-          data-numposts="10"
-        ></div>
-      </div>
-
-      <div className="container mx-auto px-4 pt-2">
         {detail.genres && detail.genres.length > 0 && related.length > 0 && (
           <CategorySwiper
             movies={related.map((m) => ({
