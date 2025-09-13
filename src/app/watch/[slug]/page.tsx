@@ -47,7 +47,7 @@ export async function generateMetadata(
   const episodeLabel = episode ? ` ${episode}` : "";
 
   const title = seo?.titleHead?.trim?.()
-    || `Xem ${movieName}| Phim HD Vietsub`;
+    || `Xem ${movieName}`;
 
   const description =
     seo?.descriptionHead?.trim?.()
