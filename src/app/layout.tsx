@@ -37,7 +37,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: SITE_URL,
     languages: {
-      "vi-VN": SITE_URL,
+      "vi": SITE_URL,
+      "en": SITE_URL,
+      "x-default": SITE_URL,
     },
   },
   openGraph: {
