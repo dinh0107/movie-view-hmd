@@ -30,14 +30,14 @@ export async function generateMetadata(
   const t = MAP[normalized] ?? readable;
 
   const canonicalPath = normalized ? `/types/${normalized}` : `/types`;
-
+  const title = `Danh sách phim ${t}, tốc độ cao Full HD`;
   const desc = `Xem ${t} mới nhất, tốc độ nhanh, miễn phí.`;
   const ogDesc = `Thưởng thức ${t} online, cập nhật mỗi ngày.`;
 
   return {
     metadataBase: new URL(ORIGIN),
 
-    title: { absolute: t },
+    title: { absolute: title },
     description: desc,
 
     alternates: { canonical: canonicalPath },
