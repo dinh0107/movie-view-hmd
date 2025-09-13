@@ -68,7 +68,7 @@ export async function generateMetadata(
   const url = `${ORIGIN}/categories/${normalized}`;
 
   return {
-    title: t,
+    title: { absolute: t },
     description: desc,
     metadataBase: new URL(ORIGIN),
 

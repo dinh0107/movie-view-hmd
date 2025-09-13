@@ -61,7 +61,7 @@ export async function generateMetadata({
   const noindex = errored || !mv?.name;
 
   return {
-    title: baseTitle,
+    title: { absolute: baseTitle },
     description,
     alternates: { canonical },
     robots: noindex

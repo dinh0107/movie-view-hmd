@@ -15,7 +15,6 @@ const pretty = (s: string) =>
     .replace(/-/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
 
-// ảnh OG/Twitter mặc định nếu API không trả về
 const DEFAULT_OG = "/og/6199290559244388322.jpg";
 
 export async function generateMetadata(
@@ -24,10 +23,10 @@ export async function generateMetadata(
   const { slug } = await params;
 
   const normalized = (slug || "").trim().toLowerCase();
-  const t = MAP[normalized] ?? (normalized ? pretty(normalized) : "Danh sách phim");
+  const readable = normalized ? pretty(normalized) : "Danh sách phim";
+  const t = MAP[normalized] ?? readable;
 
-  // Để Next.js tự render canonical tuyệt đối từ metadataBase
-  const canonicalPath = `/types/${normalized}`;
+  const canonicalPath = normalized ? `/types/${normalized}` : `/types`;
 
   const desc = `Xem ${t} mới nhất, tốc độ nhanh, miễn phí.`;
   const ogDesc = `Thưởng thức ${t} online, cập nhật mỗi ngày.`;
@@ -35,14 +34,11 @@ export async function generateMetadata(
   return {
     metadataBase: new URL(ORIGIN),
 
-    // <title> + <meta name="description">
-    title: t,
+    title: { absolute: t },
     description: desc,
 
-    // <link rel="canonical">
     alternates: { canonical: canonicalPath },
 
-    // <meta name="robots">
     robots: {
       index: true,
       follow: true,
@@ -55,13 +51,11 @@ export async function generateMetadata(
       },
     },
 
-    // <meta name="keywords"> (tùy chọn nhưng mình thêm cho đủ bộ)
     keywords: [t, "xem phim online", "phim HD", "phim mới", "xem phim miễn phí"],
 
-    // Open Graph
     openGraph: {
       type: "website",
-      url: canonicalPath, // với metadataBase → xuất ra absolute
+      url: canonicalPath,    
       title: t,
       description: ogDesc,
       siteName: "Phim ngay",
@@ -69,7 +63,6 @@ export async function generateMetadata(
       images: [{ url: DEFAULT_OG, width: 1200, height: 630, alt: t }],
     },
 
-    // Twitter Card
     twitter: {
       card: "summary_large_image",
       title: t,
@@ -77,11 +70,9 @@ export async function generateMetadata(
       images: [DEFAULT_OG],
     },
 
-    // (tuỳ chọn) publisher/app name
     applicationName: "Phim ngay",
   };
 }
-
 
 export default function Page() {
   return <TypesClient />;
