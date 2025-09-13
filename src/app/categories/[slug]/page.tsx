@@ -69,7 +69,7 @@ export async function generateMetadata({
   return {
     metadataBase: new URL(ORIGIN),
 
-    title: t,
+    title: {absolute: t},
     description: desc,
 
     alternates: { canonical: url },
