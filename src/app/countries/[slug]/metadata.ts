@@ -82,12 +82,18 @@ export async function generateMetadata({
     title: { absolute: title },
     description,
     alternates: { canonical: canonicalPath },
-    robots: noItems || errored
-      ? { index: false, follow: true, googleBot: { index: false, follow: true } }
-      : {
-          index: true, follow: true,
-          googleBot: { index: true, follow: true, "max-snippet": -1, "max-image-preview": "large", "max-video-preview": -1 },
-        },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-snippet": -1,
+        "max-image-preview": "large",
+        "max-video-preview": -1,
+      },
+    },
+
     keywords: [pretty, "quốc gia", "xem phim online", "phim HD", "phim mới"],
     openGraph: {
       type: seo.og_type || "website",

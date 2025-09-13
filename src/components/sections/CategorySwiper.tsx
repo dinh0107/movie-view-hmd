@@ -29,7 +29,7 @@ export default function CategorySwiper({ movies }: { movies: MovieItem[] }) {
         breakpoints={{
           640: { slidesPerView: 3 },
           1024: { slidesPerView: 5 },
-          1280: { slidesPerView: 7 },
+          1280: { slidesPerView: 6 },
         }}
       >
         {movies.map((m) => (
