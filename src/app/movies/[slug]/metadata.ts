@@ -64,13 +64,17 @@ export async function generateMetadata({
     title: { absolute: baseTitle },
     description,
     alternates: { canonical },
-    robots: noindex
-      ? {
-        index: false,
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
         follow: true,
-        googleBot: { index: false, follow: true },
-      }
-      : { index: true, follow: true },
+        "max-snippet": -1,
+        "max-image-preview": "large",
+        "max-video-preview": -1,
+      },
+    },
     openGraph: {
       type: (seo.og_type as any) || "video.movie",
       url: canonical,
