@@ -36,7 +36,7 @@ export default function WatchPage() {
           const saved = JSON.parse(raw) as { serverIdx: number; epIdx: number };
           return parseIntSafe(saved.serverIdx, 0);
         }
-      } catch { }
+      } catch {}
     }
     return 0;
   });
@@ -50,7 +50,7 @@ export default function WatchPage() {
           const saved = JSON.parse(raw) as { serverIdx: number; epIdx: number };
           return parseIntSafe(saved.epIdx, 0);
         }
-      } catch { }
+      } catch {}
     }
     return 0;
   });
@@ -100,12 +100,11 @@ export default function WatchPage() {
         HISTORY_KEY,
         JSON.stringify({ serverIdx, epIdx, t: Date.now() })
       );
-    } catch { }
+    } catch {}
   }, [HISTORY_KEY, serverIdx, epIdx]);
 
   useEffect(() => {
     if (!detail?.category?.length) return;
-
     Promise.all(
       detail.category.map((cat) =>
         movieService.getMoviesByCategory(cat.slug ?? "").catch(() => [])
@@ -119,7 +118,7 @@ export default function WatchPage() {
       setRelated(filtered);
     });
   }, [detail]);
-  
+
   useEffect(() => {
     if (window.FB) {
       window.FB.XFBML.parse();
@@ -139,15 +138,14 @@ export default function WatchPage() {
     [currentEp]
   );
 
-
   const pageTitle = useMemo(() => {
     if (!detail) return "Xem phim online";
-    
     const movieName = detail.name;
     const episodeName = eps[epIdx]?.name || `Tập ${epIdx + 1}`;
     const serverName = servers[serverIdx]?.server_name;
-    
-    return `Xem ${movieName} ${episodeName}${serverName ? ` - ${serverName}` : ""} | Phim HD Vietsub`;
+    return `Xem ${movieName} ${episodeName}${
+      serverName ? ` - ${serverName}` : ""
+    } | Phim HD Vietsub`;
   }, [detail, eps, epIdx, servers, serverIdx]);
 
   if (loading)
@@ -165,17 +163,35 @@ export default function WatchPage() {
 
   return (
     <main className="min-h-screen bg-[#0b0e13] text-white py-3">
-     <div className="container mx-auto px-4 py-4">
+      <div className="container mx-auto px-4 py-4">
+        {/* H1 SEO */}
+        <h1 className="text-2xl md:text-3xl font-bold text-white">
+          {pageTitle}
+        </h1>
+
+        {/* Breadcrumb */}
         <nav className="mt-2 text-sm text-white/60" aria-label="Breadcrumb">
           <ol className="flex items-center space-x-2">
-            <li><a href="/" className="hover:text-white">Trang chủ</a></li>
+            <li>
+              <a href="/" className="hover:text-white">
+                Trang chủ
+              </a>
+            </li>
             <li>›</li>
-            <li><a href={`/movie/${detail.slug}`} className="hover:text-white">{detail.name}</a></li>
+            <li>
+              <a href={`/movie/${detail.slug}`} className="hover:text-white">
+                {detail.name}
+              </a>
+            </li>
             <li>›</li>
-            <li className="text-white/80">{eps[epIdx]?.name || `Tập ${epIdx + 1}`}</li>
+            <li className="text-white/80">
+              {eps[epIdx]?.name || `Tập ${epIdx + 1}`}
+            </li>
           </ol>
         </nav>
       </div>
+
+      {/* Player */}
       <div className="container mx-auto px-4">
         <div className="aspect-video w-full overflow-hidden rounded-2xl ring-1 ring-white/10 bg-black">
           <SmartPlayer
@@ -185,36 +201,22 @@ export default function WatchPage() {
           />
         </div>
       </div>
-      
-      <div className="container mx-auto px-4 py-4">
-        <h2 className="text-xl md:text-2xl font-bold">
-          {pageTitle}
-        </h2>
-        <nav className="mt-2 text-sm text-white/60" aria-label="Breadcrumb">
-          <ol className="flex items-center space-x-2">
-            <li><a href="/" className="hover:text-white">Trang chủ</a></li>
-            <li>›</li>
-            <li><a href={`/movie/${detail.slug}`} className="hover:text-white">{detail.name}</a></li>
-            <li>›</li>
-            <li className="text-white/80">{eps[epIdx]?.name || `Tập ${epIdx + 1}`}</li>
-          </ol>
-        </nav>
-      </div>
-      
+
       {/* Controls */}
       <div className="container mx-auto px-4 mt-4 grid gap-4 md:grid-cols-[280px,1fr]">
         {/* Servers */}
         <div className="rounded-2xl bg-white/5 p-3 ring-1 ring-white/10">
-          <h3 className="font-semibold mb-2">Máy chủ</h3>
+          <h2 className="text-xl font-semibold mb-2">Máy chủ</h2>
           <div className="flex flex-wrap gap-2">
             {servers.map((sv, i) => (
               <button
                 key={`${sv.server_name}-${i}`}
                 onClick={() => setServerIdx(i)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-semibold ring-1 transition ${i === serverIdx
-                  ? "bg-white text-black ring-white/10"
-                  : "text-white/80 bg-white/5 hover:bg-white/10 ring-white/10"
-                  }`}
+                className={`px-3 py-1.5 rounded-lg text-sm font-semibold ring-1 transition ${
+                  i === serverIdx
+                    ? "bg-white text-black ring-white/10"
+                    : "text-white/80 bg-white/5 hover:bg-white/10 ring-white/10"
+                }`}
               >
                 {sv.server_name}
               </button>
@@ -225,14 +227,13 @@ export default function WatchPage() {
         {/* Episodes */}
         <div className="rounded-2xl bg-white/5 p-3 ring-1 ring-white/10">
           <div className="mb-6 flex items-center justify-between">
-            <h3 className="font-semibold">Danh sách tập</h3>
+            <h2 className="text-xl font-semibold">Danh sách tập</h2>
+            {/* nút tăng số lượng hiển thị + next/prev */}
             <div className="flex items-center gap-2">
-              {/* nút tăng số lượng hiển thị */}
               <button
                 onClick={() => setVisible((v) => Math.min(eps.length, v + 40))}
                 disabled={visible >= eps.length}
                 className="px-3 py-2 rounded-lg bg-white/10 ring-1 ring-white/10 disabled:opacity-50"
-                title="Hiển thị thêm 40 tập"
               >
                 +40
               </button>
@@ -240,16 +241,13 @@ export default function WatchPage() {
                 onClick={() => setVisible(eps.length)}
                 disabled={visible >= eps.length}
                 className="px-3 py-2 rounded-lg bg-white/10 ring-1 ring-white/10 disabled:opacity-50"
-                title="Hiển thị tất cả tập"
               >
                 All
               </button>
-
               <button
                 onClick={() => setEpIdx((v) => Math.max(0, v - 1))}
                 disabled={epIdx <= 0}
                 className="p-2 rounded-lg bg-white/10 disabled:opacity-50"
-                title="Tập trước"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
@@ -258,14 +256,14 @@ export default function WatchPage() {
                   setEpIdx((v) => Math.min((eps.length || 1) - 1, v + 1))
                 }
                 disabled={epIdx >= eps.length - 1}
-                className="p-2 rounded-lg bg-white/10 disabled:opacity-50 cursor-pointer"
-                title="Tập sau"
+                className="p-2 rounded-lg bg-white/10 disabled:opacity-50"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>
 
+          {/* List episode */}
           {eps.length === 0 ? (
             <div className="text-white/70">
               Chưa có dữ liệu tập của máy chủ này.
@@ -277,17 +275,16 @@ export default function WatchPage() {
                   <button
                     key={`${i}-${ep.name}`}
                     onClick={() => setEpIdx(i)}
-                    className={`h-10 rounded-lg text-sm cursor-pointer font-semibold ring-1 ring-white/10 transition ${i === epIdx
-                      ? "bg-white text-black"
-                      : "bg-white/10 hover:bg-white/15"
-                      }`}
-                    title={ep.name ?? `Tập ${i + 1}`}
+                    className={`h-10 rounded-lg text-sm cursor-pointer font-semibold ring-1 ring-white/10 transition ${
+                      i === epIdx
+                        ? "bg-white text-black"
+                        : "bg-white/10 hover:bg-white/15"
+                    }`}
                   >
                     {ep.name ?? `Tập ${i + 1}`}
                   </button>
                 ))}
               </div>
-
               {visible < eps.length && (
                 <div className="mt-3 flex justify-center gap-2">
                   <button
@@ -314,24 +311,31 @@ export default function WatchPage() {
         </div>
       </div>
 
+      {/* Nội dung phim */}
       <div className="container mx-auto px-4 mt-6">
         <div className="rounded-2xl bg-white/5 p-5 ring-1 ring-white/10">
-          <h3 className="font-semibold mb-2">Nội dung phim</h3>
-          <p className="text-white/80 leading-7">{detail.content || "—"}</p>
+          <h2 className="text-xl font-semibold mb-2">Nội dung phim</h2>
+          <p className="text-white/80 leading-7">
+            {detail.content || "—"}
+          </p>
         </div>
       </div>
-      
+
+      {/* Phim liên quan */}
       <div className="container mx-auto px-4 pt-2">
         {detail.genres && detail.genres.length > 0 && related.length > 0 && (
-          <CategorySwiper
-            movies={related.map((m) => ({
-              id: m.id,
-              title: m.name,
-              slug: m.slug,
-              poster: normalizeImage(m.poster_url),
-              year: m.year,
-            }))}
-          />
+          <>
+            <h2 className="text-xl font-semibold mb-4">Phim liên quan</h2>
+            <CategorySwiper
+              movies={related.map((m) => ({
+                id: m.id,
+                title: m.name,
+                slug: m.slug,
+                poster: normalizeImage(m.poster_url),
+                year: m.year,
+              }))}
+            />
+          </>
         )}
       </div>
       <div className="py-10" />
@@ -339,6 +343,7 @@ export default function WatchPage() {
   );
 }
 
+/* SmartPlayer + HlsVideo giữ nguyên */
 function SmartPlayer({
   m3u8,
   embed,
@@ -348,10 +353,7 @@ function SmartPlayer({
   embed: string | null;
   title: string;
 }) {
-  if (m3u8) {
-    return <HlsVideo src={m3u8} title={title} />;
-  }
-
+  if (m3u8) return <HlsVideo src={m3u8} title={title} />;
   if (embed) {
     const url = withAutoplay(embed);
     return (
@@ -366,7 +368,6 @@ function SmartPlayer({
       />
     );
   }
-
   return (
     <div className="h-full w-full grid place-items-center text-white/70">
       <div className="flex items-center gap-2">
@@ -384,10 +385,10 @@ function HlsVideo({ src, title }: { src: string; title: string }) {
     const video = videoRef.current;
     if (!video) return;
     video.autoplay = true;
-    
+
     if (video.canPlayType("application/vnd.apple.mpegurl")) {
       video.src = src;
-      video.play().catch(() => { });
+      video.play().catch(() => {});
       return;
     }
 
@@ -415,7 +416,7 @@ function HlsVideo({ src, title }: { src: string; title: string }) {
     return () => {
       try {
         hlsRef.current?.destroy();
-      } catch { }
+      } catch {}
       if (video) video.removeAttribute("src");
     };
   }, [src]);
@@ -429,8 +430,8 @@ function HlsVideo({ src, title }: { src: string; title: string }) {
       preload="auto"
       poster=""
       aria-label={title}
-      autoPlay 
-      muted 
+      autoPlay
+      muted
     />
   );
 }
@@ -438,8 +439,7 @@ function HlsVideo({ src, title }: { src: string; title: string }) {
 function withAutoplay(u: string) {
   try {
     const url = new URL(u);
-    if (!url.searchParams.has("autoplay"))
-      url.searchParams.set("autoplay", "1");
+    if (!url.searchParams.has("autoplay")) url.searchParams.set("autoplay", "1");
     if (url.hostname.includes("youtube.com")) url.searchParams.set("rel", "0");
     return url.toString();
   } catch {
