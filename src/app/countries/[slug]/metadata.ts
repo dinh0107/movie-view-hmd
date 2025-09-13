@@ -36,7 +36,6 @@ export async function generateMetadata({
   if (pick("sort_lang")) q.set("sort_lang", pick("sort_lang")!);
   if (pick("year")) q.set("year", pick("year")!);
 
-  // ✅ dùng fetch của Next để Next quản lý caching
   let data: any = null;
   let errored = false;
   try {
