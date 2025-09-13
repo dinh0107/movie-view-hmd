@@ -1,3 +1,4 @@
+// app/sitemap.ts
 import { getNewest, getCategories, getCountries } from "@/lib/map";
 import type { MetadataRoute } from "next";
 
@@ -30,41 +31,35 @@ const SITE =
     /\/+$/,
     ""
   );
-
 const MAX_PAGE = Number(process.env.SITEMAP_MAX_PAGE ?? 10);
 
-// --- helpers: canonical hoá URL ---
 const cleanSlug = (s?: string) =>
   (s || "").toString().trim().toLowerCase().replace(/^\/+|\/+$/g, "");
-
 const join = (path: string) =>
   `${SITE}/${path.replace(/^\/+/, "").replace(/\/{2,}/g, "/")}`;
-
 const withQS = (path: string, qs: Record<string, string | undefined>) => {
   const u = new URL(join(path));
   Object.entries(qs).forEach(([k, v]) => {
     if (typeof v === "string" && v.trim() !== "") u.searchParams.set(k, v);
   });
+  // chỉ giữ whitelist
+  const WHITELIST = new Set(["category", "country", "year"]);
+  [...u.searchParams.keys()].forEach((k) => {
+    if (!WHITELIST.has(k)) u.searchParams.delete(k);
+  });
   return u.toString();
 };
 
-// QUY ƯỚC CANONICAL:
-// - Trang danh mục/thể loại/quốc gia: dùng 1 listing canonical duy nhất
-//   `/types/phim-moi-cap-nhat` + query tương ứng.
-// - KHÔNG đưa page=1, limit mặc định… vào sitemap.
+// canonical helpers
 const canonListBase = "/types/phim-moi-cap-nhat";
 const canonCategory = (slug: string) =>
   withQS(canonListBase, { category: cleanSlug(slug) });
 const canonCountry = (slug: string) =>
   withQS(canonListBase, { country: cleanSlug(slug) });
-
-// Trang phim: canonical là `/watch/[slug]` (không thêm ep mặc định ở sitemap).
 const canonMovie = (slug: string) => join(`/watch/${cleanSlug(slug)}`);
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
-
-  // Dùng Set để tránh trùng URL
   const seen = new Set<string>();
   const push = (
     arr: MetadataRoute.Sitemap,
@@ -79,7 +74,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const items: MetadataRoute.Sitemap = [];
 
-  // --- Trang tĩnh/cố định (đảm bảo là canonical thật sự) ---
   push(items, {
     url: join("/"),
     lastModified: now,
@@ -87,9 +81,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 1,
   });
 
-  // Các loại chính nên dùng đúng route canonical của bạn:
-  // (Nếu 3 URL dưới TRÙNG với canonical bạn render trong metadata thì giữ;
-  //  nếu không, hãy bỏ hoặc thay bằng route canonical tương ứng.)
+  // Nếu 3 trang này là canonical thật sự thì giữ, không thì bỏ
   push(items, {
     url: join("/types/phim-bo"),
     lastModified: now,
@@ -109,13 +101,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.9,
   });
 
-  // ================== CATEGORIES (dùng canonical) ==================
+  // categories
   try {
     const cats = toListArray(await getCategories()) as Taxonomy[];
     for (const c of cats) {
-      const url = canonCategory(c.slug);
       push(items, {
-        url,
+        url: canonCategory(c.slug),
         lastModified: c.updatedAt ? new Date(c.updatedAt) : now,
         changeFrequency: "weekly",
         priority: 0.7,
@@ -125,13 +116,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("sitemap categories error:", e);
   }
 
-  // ================== COUNTRIES (dùng canonical) ==================
+  // countries
   try {
     const countries = toListArray(await getCountries()) as Taxonomy[];
     for (const c of countries) {
-      const url = canonCountry(c.slug);
       push(items, {
-        url,
+        url: canonCountry(c.slug),
         lastModified: c.updatedAt ? new Date(c.updatedAt) : now,
         changeFrequency: "weekly",
         priority: 0.7,
@@ -141,7 +131,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("sitemap countries error:", e);
   }
 
-  // ================== MOVIES (dùng canonical) ==================
+  // movies
   for (let page = 1; page <= MAX_PAGE; page++) {
     try {
       const data = await getNewest(page);
@@ -163,7 +153,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           priority,
         });
       }
-
       if (list.length < 20) break;
     } catch (e) {
       console.error("sitemap movies error:", e);
