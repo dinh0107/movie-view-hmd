@@ -1,4 +1,3 @@
-// app/types/[slug]/metadata.ts
 import type { Metadata } from "next";
 import { apiGet } from "@/services/axiosClient";
 
@@ -33,7 +32,6 @@ export async function generateMetadata(
   const pretty = SLUG_MAP[slug] || toPretty(slug);
   const year = new Date().getFullYear();
 
-  // ==== Dựng canonical theo whitelist query ====
   const pick = (k: string) => {
     const v = sp[k];
     return Array.isArray(v) ? v[0] : v;
@@ -49,14 +47,11 @@ export async function generateMetadata(
   const qs = qp.toString();
   const canonical = `${SITE_URL}/types/${encodeURIComponent(slug)}${qs ? `?${qs}` : ""}`;
 
-  // ==== Fallback SEO ====
   let title = `${pretty} mới nhất ${year} | Xem ${pretty} Vietsub HD - Phim Ngay`;
   let description = `Tuyển chọn ${pretty.toLowerCase()} mới nhất ${year}, vietsub chất lượng HD. Xem trọn bộ, cập nhật nhanh chóng trên Phim Ngay.`;
   let images: string[] | undefined;
 
-  // ==== Lấy SEO từ API (nếu có) ====
   try {
-    // gọi API không kèm page/limit mặc định để tránh khác canonical
     const apiUrl = `/danh-sach/${encodeURIComponent(slug)}${qs ? `?${qs}` : ""}`;
     const res = await apiGet<any>(apiUrl, {
       baseKey: slug === "phim-moi-cap-nhat" ? "phim_root" : "phim_v1",
@@ -76,7 +71,6 @@ export async function generateMetadata(
         .slice(0, 3) as string[];
     }
   } catch (err) {
-    // giữ fallback
     console.error("types metadata error:", err);
   }
 

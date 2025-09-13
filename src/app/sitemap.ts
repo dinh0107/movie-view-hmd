@@ -5,15 +5,9 @@ import type { MetadataRoute } from "next";
 export const revalidate = 3600;
 export const dynamic = "force-static";
 
-// ---------------- helpers ----------------
 function toListArray(payload: unknown): any[] {
   if (Array.isArray(payload)) return payload;
-  return (
-    (payload as any)?.items ??
-    (payload as any)?.results ??
-    (payload as any)?.data ??
-    []
-  );
+  return (payload as any)?.items ?? (payload as any)?.results ?? (payload as any)?.data ?? [];
 }
 
 interface MovieItem {
@@ -27,69 +21,70 @@ interface Taxonomy {
   updatedAt?: string;
 }
 
-const SITE = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.phimngay.top")
-  .replace(/\/+$/, "");
-
+const SITE = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.phimngay.top").replace(/\/+$/, "");
 const MAX_PAGE = Number(process.env.SITEMAP_MAX_PAGE ?? 10);
 
 const cleanSlug = (s?: string) =>
   (s || "").toString().trim().toLowerCase().replace(/^\/+|\/+$/g, "");
 
 const join = (path: string) =>
-  `${SITE}/${path.replace(/^\/+/, "").replace(/\/{2,}/g, "/")}`;
+  `${SITE}/${path.replace(/^\/+/, "").replace(/\/{2,}/g, "/")}`.replace(/\/$/, "");
 
-const WHITELIST = new Set(["category", "country", "year"]);
-
-const withQS = (path: string, qs: Record<string, string | undefined>) => {
-  const base = join(path).replace(/\/$/, "");
-  const params = new URLSearchParams();
-
-  for (const [k, v] of Object.entries(qs)) {
-    if (!WHITELIST.has(k)) continue;
-    if (typeof v === "string") {
-      const val = v.trim();
-      if (val) params.set(k, val.toLowerCase());
-    }
-  }
-
-  const query = params.toString();
-  return query ? `${base}?${query}` : base;
-};
-
-const canonListBase = "/types/phim-moi-cap-nhat";
-const canonCategory = (slug: string) =>
-  withQS(canonListBase, { category: cleanSlug(slug) });
-const canonCountry = (slug: string) =>
-  withQS(canonListBase, { country: cleanSlug(slug) });
+// canonical dạng PATH
+const canonList = () => join("/types/phim-moi-cap-nhat");
+const canonType = (slug: string) => join(`/types/${cleanSlug(slug)}`);
+const canonCategory = (slug: string) => join(`/categories/${cleanSlug(slug)}`);
+const canonCountry = (slug: string) => join(`/countries/${cleanSlug(slug)}`);
+const canonYear = (y: string) => join(`/years/${cleanSlug(y)}`);
 const canonMovie = (slug: string) => join(`/watch/${cleanSlug(slug)}`);
 
 const tidy = (u: string) => u.replace(/\/$/, "").replace(/\?$/, "");
 
-// ---------------- sitemap ----------------
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
   const seen = new Set<string>();
-
-  const push = (
-    arr: MetadataRoute.Sitemap,
-    item: MetadataRoute.Sitemap[number]
-  ) => {
+  const push = (arr: MetadataRoute.Sitemap, item: MetadataRoute.Sitemap[number]) => {
     const normalized = { ...item, url: tidy(item.url) };
-    const key = normalized.url;
-    if (!seen.has(key)) {
-      seen.add(key);
+    if (!seen.has(normalized.url)) {
+      seen.add(normalized.url);
       arr.push(normalized);
     }
   };
 
   const items: MetadataRoute.Sitemap = [];
 
+  // Home
+  push(items, { url: SITE, lastModified: now, changeFrequency: "daily", priority: 1 });
+
+  // List page tổng hợp
   push(items, {
-    url: join("/"),
+    url: canonList(),
     lastModified: now,
-    changeFrequency: "daily",
-    priority: 1,
+    changeFrequency: "hourly",
+    priority: 0.9,
   });
+
+  // 3 loại chính
+  push(items, {
+    url: canonType("phim-bo"),
+    lastModified: now,
+    changeFrequency: "hourly",
+    priority: 0.9,
+  });
+  push(items, {
+    url: canonType("phim-le"),
+    lastModified: now,
+    changeFrequency: "hourly",
+    priority: 0.9,
+  });
+  push(items, {
+    url: canonType("hoat-hinh"),
+    lastModified: now,
+    changeFrequency: "hourly",
+    priority: 0.9,
+  });
+
+  // Categories
   try {
     const cats = toListArray(await getCategories()) as Taxonomy[];
     for (const c of cats) {
@@ -104,7 +99,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("sitemap categories error:", e);
   }
 
-  // countries -> canonical dạng query
+  // Countries
   try {
     const countries = toListArray(await getCountries()) as Taxonomy[];
     for (const c of countries) {
@@ -119,11 +114,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("sitemap countries error:", e);
   }
 
-  // newest movies -> canonical /watch/[slug]
+  // Movies
   for (let page = 1; page <= MAX_PAGE; page++) {
     try {
-      const data = await getNewest(page);
-      const list: MovieItem[] = toListArray(data);
+      const list: MovieItem[] = toListArray(await getNewest(page));
       if (!list.length) break;
 
       for (const m of list) {
@@ -134,14 +128,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         const age = now.getTime() - lastModified.getTime();
         const priority = age < 1000 * 60 * 60 * 24 * 30 ? 0.8 : 0.5;
 
-        push(items, {
-          url,
-          lastModified,
-          changeFrequency: "weekly",
-          priority,
-        });
+        push(items, { url, lastModified, changeFrequency: "weekly", priority });
       }
-      if (list.length < 20) break; 
+      if (list.length < 20) break;
     } catch (e) {
       console.error("sitemap movies error:", e);
       break;
