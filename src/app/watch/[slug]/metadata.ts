@@ -12,7 +12,7 @@ export async function generateMetadata(
   const url = `${ORIGIN}/watch/${slug || ""}`;
 
   return {
-    title: t, // KHÔNG thêm " | Phim ngay" ở đây
+    title: t, 
     description: `${t} chất lượng cao, tốc độ nhanh.`,
     metadataBase: new URL(ORIGIN),
     alternates: { canonical: url },

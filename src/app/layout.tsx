@@ -100,8 +100,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <FacebookSdk />
         </MenuProvider>
 
-        <Script async src="https://www.googletagmanager.com/gtag/js?id=G-CVV3RVL1X1" strategy="afterInteractive" />
-        <Script id="google-analytics" strategy="afterInteractive">
+        <Script async src="https://www.googletagmanager.com/gtag/js?id=G-CVV3RVL1X1" strategy="beforeInteractive" />
+        <Script id="google-analytics" strategy="beforeInteractive">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
