@@ -63,7 +63,7 @@ export async function generateMetadata({
   }
   const images = ogImages.length ? ogImages.slice(0, 3) : cover ? [cover] : undefined;
 
-  const canonicalPath = `/categories/${normalized}`;   // dùng path tương đối
+  const canonicalPath = `/categories/${normalized}`;   
   const url = `${ORIGIN}${canonicalPath}`;
 
   return {
@@ -72,7 +72,7 @@ export async function generateMetadata({
     title: t,
     description: desc,
 
-    alternates: { canonical: canonicalPath },
+    alternates: { canonical: url },
 
     robots: {
       index: true,
