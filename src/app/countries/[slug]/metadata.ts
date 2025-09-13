@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { normalizeSlug } from "@/lib/utils";
 
+export const dynamic = "force-static";
 export const revalidate = 3600; 
 
 const ORIGIN = "https://www.phimngay.top";

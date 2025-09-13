@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { apiGet } from "@/services/axiosClient";
 import { normalizeSlug } from "@/lib/utils";
+export const dynamic = "force-static";
 export const revalidate = 3600; 
 const ORIGIN = "https://www.phimngay.top";
 const toAbs = (u?: string) =>
@@ -43,7 +44,7 @@ export async function generateMetadata(
     );
     data = res?.data ?? {};
     seo = data?.seoOnPage ?? {};
-  } catch {}
+  } catch { }
   const t =
     seo?.titleHead?.trim?.() ||
     data?.titlePage?.trim?.() ||
