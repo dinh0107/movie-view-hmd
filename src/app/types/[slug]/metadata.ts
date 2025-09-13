@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { apiGet } from "@/services/axiosClient";
-import { sanitizeSlug, pickBaseKey } from "@/lib/utils";
 
 const SITE_URL = "https://www.phimngay.top";
 
@@ -8,85 +7,76 @@ const SLUG_MAP: Record<string, string> = {
   "phim-moi-cap-nhat": "Phim mới cập nhật",
   "phim-le": "Phim lẻ",
   "phim-bo": "Phim bộ",
-  "hoat-hinh": "Phim Hoạt hình",
+  "hoat-hinh": "Hoạt hình",
   "tv-shows": "TV Shows",
 };
 
 const toPretty = (s: string) =>
-  (s || "").replace(/^\/+|\/+$/g, "").replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+  (s || "")
+    .replace(/^\/+|\/+$/g, "")
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 
-const safe = (v?: string) => (typeof v === "string" ? v.trim() : "");
-const orBlank = (v?: string) => safe(v) || "";
 const toAbsolute = (u?: string) =>
-  u && /^https?:\/\//i.test(u) ? u : u ? `https://phimimg.com/${u.replace(/^\/+/, "")}` : "";
+  u && /^https?:\/\//i.test(u)
+    ? u
+    : u
+    ? `https://phimimg.com/${u.replace(/^\/+/, "")}`
+    : undefined;
 
-export async function generateMetadata(args: any): Promise<Metadata> {
-  const { slug } = await args.params;
-  const sp = (await args.searchParams) || {};
-
-  const pick = (k: string) => {
-    const v = sp?.[k];
-    return Array.isArray(v) ? v[0] : v;
-  };
-
-  const cleanSlug = sanitizeSlug ? sanitizeSlug(slug) : slug;
-  const baseKey = pickBaseKey?.(cleanSlug) ?? (cleanSlug === "phim-moi-cap-nhat" ? "phim_root" : "phim_v1");
-
-  const q = new URLSearchParams({
-    page: String(pick("page") ?? 1),
-    limit: String(pick("limit") ?? 15),
-  });
-  if (pick("category")) q.set("category", String(pick("category")));
-  if (pick("country")) q.set("country", String(pick("country")));
-  if (cleanSlug !== "phim-moi-cap-nhat" && pick("sort_lang")) q.set("sort_lang", String(pick("sort_lang")));
-  if (pick("year")) q.set("year", String(pick("year")));
-
-  const apiPath = `/danh-sach/${encodeURIComponent(cleanSlug)}?${q.toString()}`;
-  const canonical = `/types/${cleanSlug}`;
-
-  let p: any = {};
-  let seo: any = {};
-  try {
-    const res = await apiGet<any>(apiPath, {
-      baseKey,
-      fallbackBases: baseKey === "phim_v1" ? ["phim_root"] : undefined,
-    });
-    p = baseKey === "phim_root" ? res ?? {} : res?.data ?? {};
-    seo = p?.seoOnPage ?? {};
-  } catch {}
-
+export async function generateMetadata(
+  { params }: any
+): Promise<Metadata> {
+  const slug = params?.slug as string;
+  const pretty = SLUG_MAP[slug] || toPretty(slug);
   const year = new Date().getFullYear();
-  const displayTitle = orBlank(p?.titlePage) || SLUG_MAP[cleanSlug] || toPretty(cleanSlug) || "Danh sách phim";
 
-  const title =
-    orBlank(seo?.titleHead) ||
-    `${displayTitle} Mới Nhất ${year} | Xem ${displayTitle} Vietsub HD - Phim Ngay`;
+  // fallback mặc định
+  let title = `${pretty} mới nhất ${year} | Xem ${pretty} Vietsub HD - Phim Ngay`;
+  let description = `Tuyển chọn ${pretty.toLowerCase()} mới nhất ${year}, vietsub chất lượng HD. Xem trọn bộ, cập nhật nhanh chóng trên Phim Ngay.`;
+  let images: string[] | undefined;
 
-  const description =
-    orBlank(seo?.descriptionHead) ||
-    orBlank(p?.descriptionPage) ||
-    `Tuyển chọn ${displayTitle.toLowerCase()} mới nhất ${year}, vietsub chất lượng HD. Xem ${displayTitle.toLowerCase()} trọn bộ, cập nhật nhanh chóng trên Phim Ngay.`;
+  try {
+    const res = await apiGet<any>(`/danh-sach/${encodeURIComponent(slug)}`, {
+      baseKey: slug === "phim-moi-cap-nhat" ? "phim_root" : "phim_v1",
+      fallbackBases: slug === "phim-moi-cap-nhat" ? undefined : ["phim_root"],
+    });
 
-  const rawImages = Array.isArray(seo?.og_image) ? seo.og_image : [];
-  const images = rawImages.map(toAbsolute).filter(Boolean).slice(0, 3);
+    const data = slug === "phim-moi-cap-nhat" ? res ?? {} : res?.data ?? {};
+    const seo = data?.seoOnPage ?? {};
+
+    if (seo.titleHead) title = seo.titleHead;
+    if (seo.descriptionHead) description = seo.descriptionHead;
+
+    if (Array.isArray(seo.og_image)) {
+      images = seo.og_image
+        .map(toAbsolute)
+        .filter(Boolean)
+        .slice(0, 3) as string[];
+    }
+  } catch (err) {
+    console.error("metadata error:", err);
+  }
+
+  const canonical = `${SITE_URL}/types/${slug}`;
 
   return {
-    title: title || "Phim Ngay – Xem phim Vietsub HD", // guard cuối
+    title: title || "Phim Ngay – Xem phim Vietsub HD",
     description,
-    alternates: { canonical: `https://www.phimngay.top${canonical}` },
+    alternates: { canonical },
     openGraph: {
-      type: (seo?.og_type && String(seo.og_type)) || "website",
-      url: `https://www.phimngay.top${canonical}`,
+      type: "website",
+      url: canonical,
       title,
       description,
-      images: images.length ? images : undefined,
+      images,
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: images.length ? images : undefined,
+      images,
     },
-    robots: { index: true, follow: true },
+    robots: "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
   };
 }
