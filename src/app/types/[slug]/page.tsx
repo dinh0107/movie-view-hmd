@@ -1,5 +1,8 @@
 import TypesClient from "./TypesClient";
 import type { Metadata } from "next";
+export const dynamic = "force-static";
+
+export const revalidate = 3600; 
 
 const ORIGIN = "https://www.phimngay.top";
 const MAP: Record<string, string> = {
