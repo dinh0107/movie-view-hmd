@@ -147,7 +147,7 @@ export default function WatchPage() {
     [currentEp]
   );
 
-  const pageTitle = useMemo(() => {
+ const pageTitle = useMemo(() => {
     if (!detail) return "Xem phim online";
     const movieName = detail.name;
     const episodeName = eps[epIdx]?.name || `Tập ${epIdx + 1}`;
@@ -155,7 +155,6 @@ export default function WatchPage() {
     return `Xem ${movieName} ${episodeName}${serverName ? ` - ${serverName}` : ""} | Phim HD Vietsub`;
   }, [detail, eps, epIdx, servers, serverIdx]);
 
-  // ==== NEW: load saved position & show popup if >= 10s ====
   useEffect(() => {
     if (!POS_KEY) return;
     try {
@@ -199,8 +198,9 @@ export default function WatchPage() {
     );
 
   return (
-    <main className="max-w-7xl mx-auto bg-[#0b0e13] text-white py-3">
-      {/* ==== NEW: Popup hỏi tiếp tục xem (khi mở -> không autoplay) ==== */}
+    <main className="bg-[#0b0e13] text-white py-3">
+      <div className="max-w-7xl mx-auto">
+{/* ==== NEW: Popup hỏi tiếp tục xem (khi mở -> không autoplay) ==== */}
       {askResume && savedPos != null && (
         <div className="fixed inset-0 z-50 bg-black/60 grid place-items-center">
           <div className="w-[92%] max-w-md rounded-2xl bg-[#141823] p-5 ring-1 ring-white/10">
@@ -239,7 +239,7 @@ export default function WatchPage() {
 
       <div className="container mx-auto px-4 py-4">
         {/* H1 SEO */}
-        <h1 className="text-2xl md:text-3xl font-bold text-white">{pageTitle}</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-white">{pageTitle ?? "Xem phim ngay"}</h1>
 
         {/* Breadcrumb */}
         <nav className="mt-2 text-sm text-white/60" aria-label="Breadcrumb">
@@ -405,6 +405,7 @@ export default function WatchPage() {
         )}
       </div>
       <div className="py-10" />
+      </div>
     </main>
   );
 }

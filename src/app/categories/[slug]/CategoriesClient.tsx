@@ -167,7 +167,7 @@ export default function MoviesPage() {
 
   return (
     <div className="min-h-screen pb-6 bg-black text-white">
-      <Breadcrumb title={slug ? `Thể loại: ${categoryTitle}` : "Movies"} />
+      <Breadcrumb title={slug ? `${categoryTitle}` : "Movies"} />
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-wrap gap-4 mb-6">

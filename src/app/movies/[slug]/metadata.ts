@@ -39,7 +39,7 @@ export async function generateMetadata({
   const mv = payload?.movie ?? payload ?? {};
 
   const baseTitle =
-    seo.titleHead || mv?.name || "Rổ Phim - Xem Phim Online HD";
+    seo.titleHead || mv?.name || "Phim ngay - Xem Phim Online HD";
 
   const description =
     seo.descriptionHead ||
