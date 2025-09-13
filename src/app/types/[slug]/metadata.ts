@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-const ORIGIN = "https://www.phimngay.top"; // KHÔNG có dấu / cuối
+const ORIGIN = "https://www.phimngay.top"; 
 const MAP: Record<string, string> = {
   "phim-moi-cap-nhat": "Phim mới cập nhật",
   "phim-le": "Phim lẻ",

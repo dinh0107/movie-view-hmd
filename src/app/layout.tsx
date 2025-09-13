@@ -126,10 +126,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Script>
 
 
-        <script
+        {/* <script
           type="text/javascript"
           src="//pl27607255.revenuecpmgate.com/53/97/f1/5397f120c7c37e17c9c154ad51c3e672.js"
-        ></script>
+        ></script> */}
       </body>
     </html>
   );
