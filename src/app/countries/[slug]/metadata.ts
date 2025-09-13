@@ -2,15 +2,13 @@ import type { Metadata } from "next";
 import { apiGet } from "@/services/axiosClient";
 import { normalizeSlug } from "@/lib/utils";
 
-const toAbsolute = (u: string) =>
-  /^https?:\/\//i.test(u)
-    ? u
-    : `https://phimimg.com/${u?.replace(/^\/+/, "")}`;
+const ORIGIN = "https://www.phimngay.top";
+
+const toAbsolute = (u?: string) =>
+  u && /^https?:\/\//i.test(u) ? u : u ? `https://phimimg.com/${u.replace(/^\/+/, "")}` : "";
 
 const prettyFromSlug = (s: string) =>
-  (s || "")
-    .replace(/-/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  (s || "").replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
 export async function generateMetadata({
   params,
@@ -32,15 +30,10 @@ export async function generateMetadata({
   const page = Number(pick("page") ?? 1) || 1;
   const limit = Number(pick("limit") ?? 15) || 15;
 
-  const q = new URLSearchParams({
-    page: String(page),
-    limit: String(limit),
-  });
-
+  const q = new URLSearchParams({ page: String(page), limit: String(limit) });
   const country = pick("country");
   const sortLang = pick("sort_lang");
   const year = pick("year");
-
   if (country) q.set("country", country);
   if (sortLang) q.set("sort_lang", sortLang);
   if (year) q.set("year", year);
@@ -59,42 +52,61 @@ export async function generateMetadata({
   const seo = data?.seoOnPage ?? {};
   const pretty = prettyFromSlug(normalizedSlug);
 
-  const baseTitle = seo.titleHead || data?.titlePage || `Quốc gia: ${pretty}`;
+  const baseTitle = seo.titleHead?.trim?.() || data?.titlePage?.trim?.() || `Quốc gia: ${pretty}`;
   const title = page > 1 ? `${baseTitle} - Trang ${page}` : baseTitle;
 
   const description =
-    seo.descriptionHead || `Xem phim ${pretty} online miễn phí, chất lượng HD, cập nhật nhanh.`;
+    seo.descriptionHead?.trim?.() ||
+    `Xem phim ${pretty} online miễn phí, chất lượng HD, cập nhật nhanh.`;
 
-  const ogImages = (seo.og_image ?? [])
-    .map(toAbsolute)
-    .filter(Boolean)
-    .slice(0, 3);
+  const ogImages: string[] = Array.isArray(seo?.og_image)
+    ? (seo.og_image as string[]).map(toAbsolute).filter(Boolean)
+    : [];
 
   let cover: string | undefined;
-  if (ogImages.length === 0 && Array.isArray(data?.items) && data.items.length > 0) {
+  if (!ogImages.length && Array.isArray(data?.items) && data.items.length > 0) {
     const first = data.items[0];
-    if (first?.poster_url) cover = toAbsolute(first.poster_url);
-    else if (first?.thumb_url) cover = toAbsolute(first.thumb_url);
+    cover = toAbsolute(first?.poster_url) || toAbsolute(first?.thumb_url);
   }
-  const images = ogImages.length ? ogImages : cover ? [cover] : undefined;
+  const images = (ogImages.length ? ogImages : cover ? [cover] : []).slice(0, 3);
+  const ogImageObjects = images?.map((url) => ({ url }));
 
-  const canonical = page > 1 ? `/countries/${normalizedSlug}?page=${page}` : `/countries/${normalizedSlug}`;
+  // canonical (tuyệt đối)
+  const canonicalPath = page > 1 ? `/countries/${normalizedSlug}?page=${page}` : `/countries/${normalizedSlug}`;
+  const canonicalAbs = `${ORIGIN}${canonicalPath}`;
 
   const noItems = !Array.isArray(data?.items) || data.items.length === 0;
 
   return {
+    metadataBase: new URL(ORIGIN),
     title,
     description,
-    alternates: { canonical },
+    alternates: { canonical: canonicalPath }, // đã có metadataBase → sẽ render thành tuyệt đối
     robots: noItems || errored
-      ? { index: false, follow: true, googleBot: { index: false, follow: true } }
-      : { index: true, follow: true },
+      ? {
+          index: false,
+          follow: true,
+          googleBot: { index: false, follow: true },
+        }
+      : {
+          index: true,
+          follow: true,
+          googleBot: {
+            index: true,
+            follow: true,
+            "max-snippet": -1,
+            "max-image-preview": "large",
+            "max-video-preview": -1,
+          },
+        },
     openGraph: {
       type: seo.og_type || "website",
-      url: canonical,
+      url: canonicalAbs,
+      siteName: "Phim ngay",
+      locale: "vi_VN",
       title,
       description,
-      images,
+      images: ogImageObjects,
     },
     twitter: {
       card: "summary_large_image",
