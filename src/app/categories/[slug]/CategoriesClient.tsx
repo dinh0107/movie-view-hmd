@@ -22,6 +22,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { useMenu } from "@/context/MenuContext";
 import { normalizeImage } from "@/lib/utils";
+import { SLUG_MAP } from "@/app/types/[slug]/TypesClient";
+import Link from "next/link";
 
 type ApiMovie = {
   id: string;
@@ -325,14 +327,14 @@ export default function MoviesPage() {
               Danh mục liên quan
             </h2>
             <div className="flex flex-wrap gap-2">
-              {categories.map((cat) => (
-                <a
-                  key={cat.slug}
-                  href={`/categories/${cat.slug}`}
+              {Object.entries(SLUG_MAP?? "").map(([s, name]) => (
+                <Link
+                  key={s}
+                  href={`/types/${s}`}
                   className="text-sm bg-gray-800 text-white/90 hover:bg-red-600 hover:text-white transition px-3 py-1.5 rounded-full border border-white/10"
                 >
-                  {cat.name}
-                </a>
+                  {name}
+                </Link>
               ))}
             </div>
           </section>

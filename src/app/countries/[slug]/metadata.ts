@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { normalizeSlug } from "@/lib/utils";
 
-export const revalidate = 3600;  // ISR mỗi 1h
+export const revalidate = 3600; 
 
 const ORIGIN = "https://www.phimngay.top";
 const DEFAULT_OG = "/og/6199290559244388322.jpg";

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { apiGet } from "@/services/axiosClient";
 import { normalizeSlug } from "@/lib/utils";
-
+export const revalidate = 3600; 
 const ORIGIN = "https://www.phimngay.top";
 const toAbs = (u?: string) =>
   u && /^https?:\/\//i.test(u) ? u : u ? `https://phimimg.com/${u.replace(/^\/+/, "")}` : "";
@@ -44,13 +44,11 @@ export async function generateMetadata(
     data = res?.data ?? {};
     seo = data?.seoOnPage ?? {};
   } catch {}
-
   const t =
     seo?.titleHead?.trim?.() ||
     data?.titlePage?.trim?.() ||
     pretty(normalized) ||
     "Danh sách phim";
-
   const desc =
     seo?.descriptionHead?.trim?.() ||
     `Xem phim ${pretty(normalized) || "hay"} online miễn phí, chất lượng HD, cập nhật nhanh.`;

@@ -36,7 +36,7 @@ type ApiMovie = {
   episode_current: string;
 };
 
-const SLUG_MAP: Record<string, string> = {
+export const SLUG_MAP: Record<string, string> = {
   "phim-moi-cap-nhat": "Phim mới cập nhật",
   "phim-le": "Phim lẻ",
   "phim-bo": "Phim bộ",
@@ -412,17 +412,17 @@ export default function TypesClient() {
           {/* Related categories */}
           <section className="mt-12">
             <h2 className="text-lg sm:text-xl font-semibold text-white mb-4">
-              Danh mục liên quan
+              Thể loại phổ biến
             </h2>
             <div className="flex flex-wrap gap-2">
-              {Object.entries(SLUG_MAP).map(([s, name]) => (
-                <Link
-                  key={s}
-                  href={`/types/${s}`}
+              {categories.map((cat) => (
+                <a
+                  key={cat.slug}
+                  href={`/categories/${cat.slug}`}
                   className="text-sm bg-gray-800 text-white/90 hover:bg-red-600 hover:text-white transition px-3 py-1.5 rounded-full border border-white/10"
                 >
-                  {name}
-                </Link>
+                  {cat.name}
+                </a>
               ))}
             </div>
           </section>
