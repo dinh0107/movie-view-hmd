@@ -1,5 +1,4 @@
 import MoviesPage from "./CategoriesClient";
-export const dynamic = "force-static";
 
 export const revalidate = 3600; 
 
