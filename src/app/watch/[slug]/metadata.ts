@@ -1,4 +1,3 @@
-// app/watch/[slug]/metadata.ts (hoặc trong page.tsx của route này)
 import type { Metadata } from "next";
 
 const ORIGIN = "https://www.phimngay.top";
