@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     template: "%s | Phim ngay",
   },
   description:
-    "Phim Ngay là website xem phim online miễn phí, chất lượng HD. Cập nhật phim mới nhanh chóng, đa dạng thể loại: hành động, tình cảm, kinh dị, hoạt hình, anime. Giao diện thân thiện, không cần đăng ký, xem mượt trên mọi thiết bị.",
+    "Phim Ngay là website xem phim online miễn phí, chất lượng HD. Cập nhật phim mới nhanh chóng, đa dạng thể loại: hành động, tình cảm, kinh dị, hoạt hình, anime, xem mượt trên mọi thiết bị.",
 alternates: {
   canonical: SITE_URL, 
   languages: {

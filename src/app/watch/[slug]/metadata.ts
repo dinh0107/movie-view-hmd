@@ -1,72 +1,27 @@
 import type { Metadata } from "next";
-import { movieDetailService } from "@/services/apiService";
-import { normalizeImage } from "@/lib/utils";
 
-const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.phimngay.top").replace(/\/+$/, "");
+const SITE_NAME = "PhimNgay";
+const ORIGIN = "https://www.phimngay.top";
 
-const clean = (s?: string) =>
-  (s || "").toString().trim().toLowerCase().replace(/^\/+|\/+$/g, "");
+const pretty = (s: string) =>
+  (s || "")
+    .replace(/^\/+|\/+$/g, "")
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 
-const absImg = (u?: string) => {
-  const x = normalizeImage?.(u || "") || (u || "");
-  return /^https?:\/\//i.test(x) ? x : x ? `https://phimimg.com/${x.replace(/^\/+/, "")}` : "";
-};
-
-type Props = {
-  params: Promise<{ slug: string }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-};
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;                
-  const cleanSlug = clean(slug);
-  const canonical = `${SITE_URL}/watch/${cleanSlug}`; 
-
-  let detail: any = null;
-  try {
-    detail = await movieDetailService.getMovieDetail(cleanSlug);
-  } catch {
-  }
-
-  const movieName: string = detail?.name || detail?.title || cleanSlug.replace(/-/g, " ");
-  const year: string | undefined = detail?.year ? String(detail.year) : undefined;
-
-  const posters = [
-    absImg(detail?.poster_url),
-    absImg(detail?.thumb_url),
-    absImg(detail?.image),
-  ].filter(Boolean);
-  const images = posters.slice(0, 3);
-
-  const title =
-    detail?.seoTitle ||
-    `Xem ${movieName}${year ? " (" + year + ")" : ""} | Vietsub HD - Phim Ngay`;
-
-  const description =
-    detail?.description?.toString().trim() ||
-    detail?.content?.toString().trim() ||
-    `Xem ${movieName} trực tuyến, Vietsub HD, tốc độ nhanh. Cập nhật tập mới liên tục trên Phim Ngay.`;
+export async function generateMetadata(
+  { params }: { params: Promise<{ slug: string }> }
+): Promise<Metadata> {
+  const { slug } = await params;               
+  const t = slug ? `Xem ${pretty(slug)}` : "Xem phim";
+  const url = `${ORIGIN}/watch/${slug || ""}`;
 
   return {
-    title,
-    description,
-
-    alternates: { canonical },
-
-    openGraph: {
-      type: "video.other",
-      url: canonical,
-      title,
-      description,
-      images: images.length ? images : undefined,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: images.length ? images : undefined,
-    },
-
-    robots: { index: true, follow: true },
+    title: `${t} | ${SITE_NAME}`,
+    description: `${t} chất lượng cao, tốc độ nhanh trên ${SITE_NAME}.`,
+    metadataBase: new URL(ORIGIN),
+    alternates: { canonical: url },
+    openGraph: { title: `${t} | ${SITE_NAME}`, description: `Xem ${t} online.`, url, type: "video.other", siteName: SITE_NAME },
+    twitter: { card: "summary_large_image", title: `${t} | ${SITE_NAME}`, description: `Xem ${t} trên ${SITE_NAME}.` },
   };
 }
