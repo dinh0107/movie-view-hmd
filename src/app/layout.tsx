@@ -1,4 +1,3 @@
-
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -31,38 +30,24 @@ export const metadata: Metadata = {
   },
   description:
     "Phim Ngay là website xem phim online miễn phí, chất lượng HD. Cập nhật phim mới nhanh chóng, đa dạng thể loại: hành động, tình cảm, kinh dị, hoạt hình, anime, xem mượt trên mọi thiết bị.",
-  keywords: [
-    "xem phim online",
-    "phim HD",
-    "phim mới",
-    "phim hành động",
-    "phim lẻ",
-    "phim chiếu rạp",
-  ],
-  alternates: {
-    canonical: SITE_URL,
-    languages: { "vi-VN": SITE_URL },
-  },
   robots: {
     index: true,
     follow: true,
-    nocache: false,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-      "max-video-preview": -1,
+  },
+  alternates: {
+    canonical: SITE_URL,
+    languages: {
+      "vi-VN": SITE_URL,
     },
   },
   openGraph: {
     type: "website",
+    locale: "vi_VN",
     url: SITE_URL,
     siteName: "Phim ngay",
     title: "Phim ngay - Xem Phim Online HD, Phim Mới Cập Nhật Nhanh",
     description:
       "Phim Ngay là website xem phim online miễn phí, chất lượng HD. Cập nhật phim mới nhanh chóng, đa dạng thể loại: hành động, tình cảm, kinh dị, hoạt hình, anime. Giao diện thân thiện, không cần đăng ký, xem mượt trên mọi thiết bị.",
-    locale: "vi_VN",
     images: [
       {
         url: "https://www.phimngay.top/og/6199290559244388322.jpg",
@@ -76,7 +61,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Phim ngay - Xem Phim Online HD, Phim Mới Cập Nhật Nhanh",
     description:
-      "Phim Ngay là website xem phim online miễn phí, chất lượng HD. Cập nhật phim mới nhanh chóng, đa dạng thể loại: hành động, tình cảm, kinh dị, hoạt hình, anime. Giao diện thân thiện, không cần đăng ký, xem mượt trên mọi thiết bị.",
+      "Phim Ngay là website xem phim online miễn phí, chất lượng HD. Cập nhật phim mới nhanh chóng, đa dạng thể loại: hành động, tình cảm, kinh dị, hoạt hình, anime.",
     images: ["https://www.phimngay.top/og/6199290559244388322.jpg"],
   },
   icons: {
@@ -109,27 +94,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             gtag('config', 'G-CVV3RVL1X1');
           `}
         </Script>
-
-        {/* JSON-LD: để ở body, không cần nhét vào <head> */}
-        <Script id="site-jsonld" type="application/ld+json" strategy="afterInteractive">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebSite",
-            name: "Phim ngay",
-            url: "https://www.phimngay.top/",
-            potentialAction: {
-              "@type": "SearchAction",
-              target: "https://www.phimngay.top/search?query={search_term_string}",
-              "query-input": "required name=search_term_string",
-            },
-          })}
-        </Script>
-
-
-        {/* <script
-          type="text/javascript"
-          src="//pl27607255.revenuecpmgate.com/53/97/f1/5397f120c7c37e17c9c154ad51c3e672.js"
-        ></script> */}
       </body>
     </html>
   );
