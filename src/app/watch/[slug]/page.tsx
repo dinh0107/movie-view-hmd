@@ -1,7 +1,7 @@
 import { apiGet } from "@/services/axiosClient";
 import WatchPage from "./WatchClient";
 import type { Metadata } from "next";
-
+export const dynamic = "force-static";
 export const revalidate = 3600; 
 const ORIGIN = "https://www.phimngay.top";
 
