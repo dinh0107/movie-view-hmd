@@ -66,14 +66,11 @@ export async function generateMetadata(
   const url = `${ORIGIN}/categories/${normalized}`;
 
   return {
+    metadataBase: new URL(ORIGIN),
     title: { absolute: t },
     description: desc,
-    metadataBase: new URL(ORIGIN),
-
-    // canonical link
     alternates: { canonical: url },
 
-    // robots
     robots: {
       index: true,
       follow: true,
