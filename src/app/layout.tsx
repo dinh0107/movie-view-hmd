@@ -10,7 +10,7 @@ import Script from "next/script";
 import BottomAdBanner from "@/components/ui/Ads";
 import FacebookSdk from "@/components/sections/FacebookSdk";
 
-const SITE_URL = "https://www.phimngay.top/";
+const SITE_URL = "https://www.phimngay.top";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
