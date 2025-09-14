@@ -128,7 +128,7 @@ export default function MoviesPage() {
       try {
         setLoading(true);
         const res = await apiGet<any>(
-          `/the-loai/${slug}?page=${page}&limit=15` +
+          `/the-loai/${slug}?page=${page}&limit=20` +
           (country ? `&country=${country}` : "") +
           (lang ? `&sort_lang=${lang}` : "") +
           (year ? `&year=${year}` : ""),

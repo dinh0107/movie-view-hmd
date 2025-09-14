@@ -76,13 +76,6 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="vi">
-     <head>
-        <Script
-          src="//pl27607255.revenuecpmgate.com/53/97/f1/5397f120c7c37e17c9c154ad51c3e672.js"
-          type="text/javascript"
-          strategy="beforeInteractive"
-        />
-      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black`}>
         <MenuProvider>
           <HeaderLayout />
@@ -93,9 +86,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <FooterLayout />
           <FacebookSdk />
         </MenuProvider>
-
-        <Script async src="https://www.googletagmanager.com/gtag/js?id=G-CVV3RVL1X1" strategy="beforeInteractive" />
-        <Script id="google-analytics" strategy="beforeInteractive">
+        <Script
+          src="//pl27607255.revenuecpmgate.com/53/97/f1/5397f120c7c37e17c9c154ad51c3e672.js"
+          strategy="afterInteractive"
+        />
+        <Script async src="https://www.googletagmanager.com/gtag/js?id=G-CVV3RVL1X1" strategy="afterInteractive" />
+        <Script id="google-analytics" strategy="afterInteractive">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}

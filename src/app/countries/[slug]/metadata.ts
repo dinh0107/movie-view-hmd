@@ -30,7 +30,7 @@ export async function generateMetadata({
   };
 
   const page = Number(pick("page") ?? 1) || 1;
-  const limit = Number(pick("limit") ?? 15) || 15;
+  const limit = Number(pick("limit") ?? 20) || 20;
 
   const q = new URLSearchParams({ page: String(page), limit: String(limit) });
   if (pick("country")) q.set("country", pick("country")!);

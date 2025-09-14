@@ -29,7 +29,7 @@ export async function generateMetadata(
 
   const q = new URLSearchParams({
     page: String(pick("page") ?? 1),
-    limit: String(pick("limit") ?? 15),
+    limit: String(pick("limit") ?? 20),
   });
   if (pick("country")) q.set("country", pick("country")!);
   if (pick("sort_lang")) q.set("sort_lang", pick("sort_lang")!);

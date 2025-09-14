@@ -128,7 +128,7 @@ export default function MoviesPage() {
       try {
         setLoading(true);
         const res = await apiGet<any>(
-          `/quoc-gia/${slug}?page=${page}&limit=15` +
+          `/quoc-gia/${slug}?page=${page}&limit=20` +
           (category ? `&category=${category}` : "") +
           (lang ? `&sort_lang=${lang}` : "") +
           (year ? `&year=${year}` : ""),

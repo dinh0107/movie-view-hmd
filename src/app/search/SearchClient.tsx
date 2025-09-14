@@ -130,7 +130,7 @@ export default function SearchPage() {
         const res = await apiGet<any>(
           `/tim-kiem?keyword=${encodeURIComponent(
             keyword
-          )}&page=${page}&limit=15` +
+          )}&page=${page}&limit=20` +
             (category ? `&category=${category}` : "") +
             (country ? `&country=${country}` : "") +
             (lang ? `&sort_lang=${lang}` : "") +

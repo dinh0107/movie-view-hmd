@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { apiGet } from "@/services/axiosClient";
 import { normalizeSlug } from "@/lib/utils";
 
-export const revalidate = 3600;         
+export const revalidate = 3600;
 
 const ORIGIN = "https://www.phimngay.top";
 const toAbs = (u?: string) =>
@@ -30,7 +30,7 @@ export async function generateMetadata({
 
   const q = new URLSearchParams({
     page: String(pick("page") ?? 1),
-    limit: String(pick("limit") ?? 15),
+    limit: String(pick("limit") ?? 20),
   });
   if (pick("country")) q.set("country", pick("country")!);
   if (pick("sort_lang")) q.set("sort_lang", pick("sort_lang")!);
@@ -41,7 +41,7 @@ export async function generateMetadata({
     const res = await apiGet<any>(`/the-loai/${encodeURIComponent(slug)}?${q.toString()}`, { baseKey: "phim_v1" });
     data = res?.data ?? {};
     seo = data?.seoOnPage ?? {};
-  } catch {}
+  } catch { }
 
   const t =
     seo?.titleHead?.trim?.() ||
@@ -63,16 +63,15 @@ export async function generateMetadata({
   }
   const images = ogImages.length ? ogImages.slice(0, 3) : cover ? [cover] : undefined;
 
-  const canonicalPath = `/categories/${normalized}`;   
+  const canonicalPath = `/categories/${normalized}`;
   const url = `${ORIGIN}${canonicalPath}`;
 
   return {
     metadataBase: new URL(ORIGIN),
-
-    title: {absolute: t},
+    title: t,
     description: desc,
 
-    alternates: { canonical: url },
+    alternates: { canonical: canonicalPath },
 
     robots: {
       index: true,
