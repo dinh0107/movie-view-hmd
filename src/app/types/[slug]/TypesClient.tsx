@@ -416,13 +416,13 @@ export default function TypesClient() {
             </h2>
             <div className="flex flex-wrap gap-2">
               {categories.map((cat) => (
-                <a
+                <Link
                   key={cat.slug}
                   href={`/categories/${cat.slug}`}
                   className="text-sm bg-gray-800 text-white/90 hover:bg-red-600 hover:text-white transition px-3 py-1.5 rounded-full border border-white/10"
                 >
                   {cat.name}
-                </a>
+                </Link>
               ))}
             </div>
           </section>
