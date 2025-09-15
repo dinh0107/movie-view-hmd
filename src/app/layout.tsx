@@ -86,10 +86,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <FooterLayout />
           <FacebookSdk />
         </MenuProvider>
-        <Script
+        {/* <Script
           src="//pl27607255.revenuecpmgate.com/53/97/f1/5397f120c7c37e17c9c154ad51c3e672.js"
           strategy="afterInteractive"
-        />
+        /> */}
         <Script async src="https://www.googletagmanager.com/gtag/js?id=G-CVV3RVL1X1" strategy="afterInteractive" />
         <Script id="google-analytics" strategy="afterInteractive">
           {`
