@@ -24,6 +24,9 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
+ other: {
+    clckd: "f6d66ab14a5b79537442b68726936b49",
+  },
   title: {
     default: "Phim ngay - Xem Phim Online HD, Phim Mới Cập Nhật Nhanh",
     template: "%s | Phim ngay",
