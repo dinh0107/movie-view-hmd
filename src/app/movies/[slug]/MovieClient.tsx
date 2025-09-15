@@ -252,19 +252,19 @@ export default function MovieDetailPage({ slug }: { slug: string }) {
               icon: <BadgeInfo className="h-4 w-4" />,
             },
             { key: "episodes", label: "Tập", icon: <Tv className="h-4 w-4" /> },
-            {
-              key: "cast",
-              label: "Diễn viên",
-              icon: <Film className="h-4 w-4" />,
-            },
-            // { key: 'photos', label: 'Ảnh', icon: <ChevronRight className="h-4 w-4 rotate-90" /> },
+            // {
+            //   key: "cast",
+            //   label: "Diễn viên",
+            //   icon: <Film className="h-4 w-4" />,
+            // },
           ].map((t) => (
             <button
               key={t.key}
               onClick={() => setActiveTab(t.key as any)}
-              className={`mr-1 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition cursor-pointer ${activeTab === (t.key as any)
-                ? "bg-white text-black shadow"
-                : "text-white/80 hover:bg-white/10"
+              className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition ${
+            activeTab === t.key
+              ? "bg-white text-black shadow"
+              : "text-white/80 hover:bg-white/10"
                 }`}
             >
               {t.icon}

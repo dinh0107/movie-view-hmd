@@ -97,7 +97,7 @@ function MovieCard({ movie }: { movie: ApiMovie }) {
       </div>
 
       <div className="absolute inset-x-0 bottom-0 p-4">
-        <h3 className="text-white text-base sm:text-lg md:text-xl lg:text-2xl font-semibold line-clamp-2">
+        <h3 className="text-white text-base sm:text-lg md:text-xl lg:text-1xl font-semibold line-clamp-2">
           {movie.name}
         </h3>
         <div className="mt-3">

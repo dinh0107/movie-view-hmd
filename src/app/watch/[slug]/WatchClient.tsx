@@ -200,7 +200,6 @@ export default function WatchPage() {
   return (
     <main className="bg-[#0b0e13] text-white py-3">
       <div className="max-w-7xl mx-auto">
-{/* ==== NEW: Popup hỏi tiếp tục xem (khi mở -> không autoplay) ==== */}
       {askResume && savedPos != null && (
         <div className="fixed inset-0 z-50 bg-black/60 grid place-items-center">
           <div className="w-[92%] max-w-md rounded-2xl bg-[#141823] p-5 ring-1 ring-white/10">
@@ -268,7 +267,6 @@ export default function WatchPage() {
             title={detail.name}
             resumeAt={resumeAt ?? 0}
             onProgressSave={handleProgressSave}
-            // Khi popup mở -> KHÔNG autoplay
             canAutoPlay={!askResume}
           />
         </div>

@@ -74,7 +74,7 @@ function MovieCard({ movie }: { movie: ApiMovie }) {
       </div>
 
       <div className="absolute inset-x-0 bottom-0 p-4">
-        <h3 className="text-white text-base sm:text-lg md:text-xl lg:text-2xl font-semibold line-clamp-2">
+        <h3 className="text-white text-base sm:text-lg md:text-xl lg:text-1xl font-semibold line-clamp-2">
           {movie.name}
         </h3>
         <div className="mt-3">
@@ -131,10 +131,10 @@ export default function SearchPage() {
           `/tim-kiem?keyword=${encodeURIComponent(
             keyword
           )}&page=${page}&limit=20` +
-            (category ? `&category=${category}` : "") +
-            (country ? `&country=${country}` : "") +
-            (lang ? `&sort_lang=${lang}` : "") +
-            (year ? `&year=${year}` : ""),
+          (category ? `&category=${category}` : "") +
+          (country ? `&country=${country}` : "") +
+          (lang ? `&sort_lang=${lang}` : "") +
+          (year ? `&year=${year}` : ""),
           { baseKey: "phim_v1" }
         );
         const data = res?.data ?? {};
