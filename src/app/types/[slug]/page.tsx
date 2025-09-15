@@ -2,10 +2,13 @@
 import Link from "next/link";
 import TypesClient from "./TypesClient";
 import type { Metadata } from "next";
+import { getSeo } from "@/lib/utils";
 
 export const revalidate = 3600; // ISR 1h
 
 type Cat = { slug: string; name: string };
+const toAbs = (u?: string) =>
+  u && /^https?:\/\//i.test(u) ? u : u ? `https://phimimg.com/${u.replace(/^\/+/, "")}` : "";
 
 function normalizeSlug(s: string) {
   return (s || "").trim().toLowerCase().replace(/^\/+|\/+$/g, "");
@@ -66,19 +69,26 @@ export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> }
 ): Promise<Metadata> {
   const { slug } = await params;
-
+  const seo = await getSeo(slug);
   const normalized = (slug || "").trim().toLowerCase();
   const readable = normalized ? pretty(normalized) : "Danh sách phim";
   const t = MAP[normalized] ?? readable;
 
   const canonicalPath = normalized ? `/types/${normalized}` : `/types`;
-  const title = `Danh sách phim ${t}, tốc độ cao Full HD`;
-  const desc = `Xem ${t} mới nhất, tốc độ nhanh, miễn phí.`;
-  const ogDesc = `Thưởng thức ${t} online, cập nhật mỗi ngày.`;
-
+  const title = seo.titleHead ?? `Danh sách phim ${t}, tốc độ cao Full HD`;
+  const desc =  seo.descriptionHead ??  `Xem ${t} mới nhất, tốc độ nhanh, miễn phí.`;
+  const ogDesc = seo.descriptionHead ?? `Thưởng thức ${t} online, cập nhật mỗi ngày.`;
+  const ogImages: string[] = Array.isArray(seo?.og_image)
+    ? seo.og_image.map(toAbs).filter(Boolean)
+    : [];
+    
+  let cover: string | undefined;
+  if (!ogImages.length && Array.isArray(seo?.items) && seo.items.length) {
+    cover = toAbs(seo.items[0]?.poster_url) || toAbs(seo.items[0]?.thumb_url);
+  }
+  const images = ogImages.length ? ogImages.slice(0, 3) : cover ? [cover] : undefined;
   return {
     metadataBase: new URL(ORIGIN),
-    // dùng chuỗi thuần để tránh tool báo thiếu title
     title,
     description: desc,
     alternates: { canonical: canonicalPath },
@@ -95,25 +105,24 @@ export async function generateMetadata(
     },
     keywords: [t, "xem phim online", "phim HD", "phim mới", "xem phim miễn phí"],
     openGraph: {
-      type: "website",
+      type: seo.og_type ?? "website",
       url: canonicalPath,
       title: t,
       description: ogDesc,
       siteName: "Phim ngay",
       locale: "vi_VN",
-      images: [{ url: DEFAULT_OG, width: 1200, height: 630, alt: t }],
+      images
     },
     twitter: {
       card: "summary_large_image",
       title: t,
       description: `Xem ${t} trên Phim ngay.`,
-      images: [DEFAULT_OG],
+     images
     },
     applicationName: "Phim ngay",
   };
 }
 
-// ✅ async server component: fetch SSR để crawler thấy link ngay trong HTML
 export default async function Page() {
   const categories = await getCategories();
   return (

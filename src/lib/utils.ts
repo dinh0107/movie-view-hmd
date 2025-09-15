@@ -153,3 +153,12 @@ export const normalizeSlug = (s: string) =>
    .replace(/đ/g, "d")
    .replace(/Đ/g, "D")
    .toLowerCase();
+
+
+export async function getSeo(slug: string) {
+  const url = `https://phimapi.com/v1/api/danh-sach/${encodeURIComponent(slug)}`;
+  const res = await fetch(url, { next: { revalidate: 3600 } });
+  if (!res.ok) return null;
+  const json = await res.json();
+  return json?.data?.seoOnPage ?? null;
+}
