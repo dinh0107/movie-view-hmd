@@ -163,7 +163,7 @@ export default function TypesClient() {
 
         const params = new URLSearchParams({
           page: String(page),
-          limit: "15",
+          limit: "20",
         });
         if (category) params.set("category", category);
         if (country) params.set("country", country);
@@ -175,7 +175,6 @@ export default function TypesClient() {
         const res = await apiGet<any>(url, {
           baseKey,
           fallbackBases: baseKey === "phim_v1" ? ["phim_root"] : undefined,
-          // signal: ac.signal, // bật nếu apiGet hỗ trợ AbortController
         });
 
         const data = baseKey === "phim_root" ? res ?? {} : res?.data ?? {};
@@ -221,7 +220,6 @@ export default function TypesClient() {
 
   const displayTitle = categoryTitle ?? SLUG_MAP[slug ?? ""] ?? toPretty(slug || "");
 
-  // Tạo “cửa sổ” phân trang quanh trang hiện tại
   const windowedPages = React.useMemo(() => {
     const start = Math.max(1, page - 2);
     const end = Math.min(totalPages, start + 4);
