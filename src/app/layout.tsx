@@ -103,19 +103,27 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           `}
         </Script>
         <Script
-          id="trusted-traffic"
           src="https://developers.trustedaccounts.org/trusted-sdk/trusted-traffic.js"
           strategy="afterInteractive"
-          onLoad={() => {
-            try {
-              const TT = (window as any).TrustedTraffic;
-              if (TT) new TT({ clientId: "950f7656-a2c2-44a7-a49f-c3aff904df69" }).init();
-              else console.warn("TrustedTraffic SDK not found on window.");
-            } catch (err) {
-              console.error("TrustedTraffic init failed:", err);
-            }
-          }}
         />
+        <Script id="trusted-traffic-init" strategy="afterInteractive">
+          {`
+            (function initTT(){
+              if (window.TrustedTraffic) {
+                try {
+                  new window.TrustedTraffic({
+                    clientId: "950f7656-a2c2-44a7-a49f-c3aff904df69"
+                  }).init();
+                } catch (e) {
+                  console.error("TrustedTraffic init failed:", e);
+                }
+              } else {
+                // SDK chưa sẵn sàng → thử lại
+                setTimeout(initTT, 50);
+              }
+            })();
+          `}
+        </Script>
       </body>
     </html>
   );
