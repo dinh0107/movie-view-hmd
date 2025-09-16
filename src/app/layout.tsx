@@ -24,7 +24,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
- other: {
+  other: {
     clckd: "f6d66ab14a5b79537442b68726936b49",
   },
   title: {
@@ -102,6 +102,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             gtag('config', 'G-CVV3RVL1X1');
           `}
         </Script>
+        <Script
+          id="trusted-traffic"
+          src="https://developers.trustedaccounts.org/trusted-sdk/trusted-traffic.js"
+          strategy="afterInteractive"
+          onLoad={() => {
+            try {
+              const TT = (window as any).TrustedTraffic;
+              if (TT) new TT({ clientId: "950f7656-a2c2-44a7-a49f-c3aff904df69" }).init();
+              else console.warn("TrustedTraffic SDK not found on window.");
+            } catch (err) {
+              console.error("TrustedTraffic init failed:", err);
+            }
+          }}
+        />
       </body>
     </html>
   );
