@@ -83,7 +83,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <MenuProvider>
           <HeaderLayout />
           {children}
-          <BottomAdBanner />
+          {/* <BottomAdBanner /> */}
           <Analytics />
           <SpeedInsights />
           <FooterLayout />
