@@ -70,8 +70,8 @@ export const metadata: Metadata = {
     images: ["https://www.phimngay.top/og/6199290559244388322.jpg"],
   },
   icons: {
-    icon: [{ url: "/favicon.ico" }],
-    apple: [{ url: "/favicon.ico", sizes: "180x180", type: "image/png" }],
+    icon: [{ url: "https://www.phimngay.top/og/logo.png" }],
+    apple: [{ url: "https://www.phimngay.top/og/logo.png", sizes: "180x180", type: "image/png" }],
   },
   applicationName: "Phim ngay",
 };

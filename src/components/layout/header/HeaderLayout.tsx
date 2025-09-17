@@ -5,6 +5,7 @@ import HeaderMenu from "./HeaderMenu";
 import SearchDialog from "./SearchDialog";
 import MobileMenu from "./MobileMenu";
 import { Film, FilmIcon } from "lucide-react";
+import Image from "next/image";
 
 export default function HeaderLayout() {
   return (
@@ -17,7 +18,12 @@ export default function HeaderLayout() {
              bg-clip-text text-transparent"
         >
           <FilmIcon className="w-6 h-6 text-red-500" />
-          Phim ngay
+          <Image
+            src={"https://www.phimngay.top/og/logo.png"}
+            width={48}
+            alt="Phim Ngay Logo"
+            height={48}
+            className="rounded-full object-contain"></Image>
         </Link>
 
         <div className="hidden md:flex">
