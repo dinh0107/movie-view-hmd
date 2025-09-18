@@ -18,12 +18,7 @@ export default function HeaderLayout() {
              bg-clip-text text-transparent"
         >
           <FilmIcon className="w-6 h-6 text-red-500" />
-          <Image
-            src={"https://www.phimngay.top/og/logo.png"}
-            width={48}
-            alt="Phim Ngay Logo"
-            height={48}
-            className="rounded-full object-contain"></Image>
+          Phim ngay
         </Link>
 
         <div className="hidden md:flex">
