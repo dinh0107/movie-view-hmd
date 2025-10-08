@@ -70,9 +70,45 @@ export const metadata: Metadata = {
   },
   applicationName: "Phim ngay",
 };
+
+const schemaData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      "url": SITE_URL,
+      "name": "Phim Ngay",
+      "description": "Phim Ngay — Xem phim online miễn phí HD, cập nhật phim mới nhanh",
+      "publisher": {
+        "@type": "Organization",
+        "name": "Phim Ngay",
+        "url": SITE_URL
+      },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": `${SITE_URL}/search/{search_term_string}`,
+        "query-input": "required name=search_term_string"
+      }
+    },
+    {
+      "@type": "WebPage",
+      "@id": `${SITE_URL}/#webpage`,
+      "url": SITE_URL,
+      "name": "Trang chủ Phim Ngay",
+      "isPartOf": { "@id": `${SITE_URL}/#website` },
+      "description": "Trang chủ Phim Ngay — xem phim mới, phim lẻ, phim bộ, thể loại đa dạng"
+    }
+  ]
+};
+
 const HomePage = () => {
   return (
     <main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
+      />
       <HeroBannerSlider />
       <MovieCategories />
       <HotSearchBannerSlider />
