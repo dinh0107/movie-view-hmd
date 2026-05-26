@@ -1,6 +1,26 @@
 import TypesClient from "./TypesClient";
-export { generateMetadata } from "./metadata";
+import { Suspense } from "react";
+import { Loader2 } from "lucide-react";
+import { generateTypeMetadata } from "./metadata";
+
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata(
+  props: Parameters<typeof generateTypeMetadata>[0]
+) {
+  return generateTypeMetadata(props);
+}
 
 export default function Page() {
-  return <TypesClient />;
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen grid place-items-center bg-black text-white">
+          <Loader2 className="h-10 w-10 animate-spin text-red-500" />
+        </main>
+      }
+    >
+      <TypesClient />
+    </Suspense>
+  );
 }

@@ -1,8 +1,15 @@
 import WatchPage from "./WatchClient";
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
+import { generateWatchMetadata } from "./metadata";
 
-export { generateMetadata } from "./metadata";
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata(
+  props: Parameters<typeof generateWatchMetadata>[0]
+) {
+  return generateWatchMetadata(props);
+}
 
 export default function Page() {
   return (

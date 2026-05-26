@@ -6,9 +6,7 @@ import FooterLayout from "@/components/layout/footer/FooterLayout";
 import { MenuProvider } from "@/context/MenuContext";
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from "@vercel/speed-insights/next";
-
-
-const SITE_URL = "https://ro-phim.vn";
+import { SITE_URL } from "@/lib/site";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -28,10 +26,6 @@ export const metadata: Metadata = {
   },
   description:
     "Phim ngay - Website xem phim online miễn phí, chất lượng HD, cập nhật phim mới nhất nhanh chóng. Thưởng thức kho phim đa dạng từ hành động, tình cảm đến hoạt hình.",
-  alternates: {
-    canonical: "/",
-    languages: { "vi-VN": "/" },
-  },
   robots: {
     index: true,
     follow: true,
@@ -46,7 +40,6 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    url: SITE_URL,
     siteName: "Phim ngay",
     title: "Phim ngay - Xem Phim Online HD, Phim Mới Cập Nhật Nhanh",
     description:
@@ -64,10 +57,8 @@ export const metadata: Metadata = {
     images: ["/og/og-home.jpg"],
   },
   icons: {
-    icon: [
-      { url: "/favicon.ico" },
-    ],
-    apple: [{ url: "/favicon.ico", sizes: "180x180", type: "image/png" }],
+    icon: "/favicon.ico",
+    apple: "/favicon.ico",
   },
   applicationName: "Phim ngay",
   // manifest: "/manifest.webmanifest",
@@ -94,7 +85,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               url: SITE_URL,
               potentialAction: {
                 "@type": "SearchAction",
-                target: `${SITE_URL}/tim-kiem?q={search_term_string}`,
+                target: `${SITE_URL}/search?query={search_term_string}`,
                 "query-input": "required name=search_term_string",
               },
             }),

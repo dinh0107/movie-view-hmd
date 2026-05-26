@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { SITE_URL } from "@/lib/site"
 export type Movie = {
   slug: string;
   updatedAt: string;
@@ -81,9 +82,7 @@ export function fixApiPath(path: string) {
 
 export async function getAllMovies(): Promise<Movie[]> {
   const origin =
-    process.env.API_ORIGIN ||
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    "http://localhost:3000";
+    process.env.API_ORIGIN || SITE_URL || "http://localhost:3000";
 
   try {
     const res = await fetch(`${origin}/api/movies?limit=5000`, {

@@ -1,68 +1,81 @@
 import type { Metadata } from "next";
 import { apiGet } from "@/services/axiosClient";
+import {
+  buildCanonicalPath,
+  buildPageMetadata,
+  pickParam,
+  shouldUseAbsoluteTitle,
+  toAbsoluteImage,
+  type SearchParams,
+} from "@/lib/seo";
 
-const toAbsolute = (u: string) =>
-  /^https?:\/\//i.test(u) ? u : `https://phimimg.com/${u?.replace(/^\/+/, "")}`;
+type MetadataProps = {
+  searchParams: Promise<SearchParams>;
+};
 
-export async function generateMetadata({
+export async function generateSearchMetadata({
   searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}): Promise<Metadata> {
+}: MetadataProps): Promise<Metadata> {
   const sp = await searchParams;
-  const q = Array.isArray(sp?.q) ? sp.q[0] : sp?.q;
+  const query = pickParam(sp, "query");
 
-  let data: any = null;
-  try {
-    if (q) {
-      const path = `/tim-kiem?keyword=${encodeURIComponent(q)}`;
-      const res = await apiGet<any>(path, { baseKey: "phim_v1" });
-      data = res?.data ?? {};
-    }
-  } catch (err) {
-    console.error("SEO search error:", err);
+  const canonical = buildCanonicalPath("/search", {
+    query: query ? { query } : undefined,
+  });
+
+  if (!query) {
+    return buildPageMetadata({
+      title: "Tìm kiếm phim miễn phí",
+      description:
+        "Tìm kiếm và xem phim online miễn phí, chất lượng HD, cập nhật nhanh.",
+      canonical: "/search",
+      robots: {
+        index: false,
+        follow: true,
+        googleBot: { index: false, follow: true },
+      },
+    });
   }
 
-  const seo = data?.seoOnPage ?? {};
+  let data: Record<string, unknown> | null = null;
+  try {
+    const res = await apiGet<{ data?: Record<string, unknown> }>(
+      `/tim-kiem?keyword=${encodeURIComponent(query)}`,
+      { baseKey: "phim_v1" }
+    );
+    data = res?.data ?? {};
+  } catch (err) {
+    console.error("[search] generateMetadata:", err);
+  }
+
+  const seo = (data?.seoOnPage ?? {}) as Record<string, unknown>;
   const title =
-    seo.titleHead ||
-    (q ? `Kết quả tìm kiếm cho: ${q}` : "Tìm kiếm phim miễn phí");
+    (seo.titleHead as string | undefined) ||
+    `Kết quả tìm kiếm cho: ${query}`;
   const description =
-    seo.descriptionHead ||
-    (q
-      ? `Xem kết quả tìm kiếm cho "${q}" online miễn phí, chất lượng HD, cập nhật nhanh.`
-      : "Tìm kiếm và xem phim online miễn phí, chất lượng HD.");
+    (seo.descriptionHead as string | undefined) ||
+    `Xem kết quả tìm kiếm cho "${query}" online miễn phí, chất lượng HD, cập nhật nhanh.`;
 
-  const ogImages = (seo.og_image ?? []).map(toAbsolute).filter(Boolean);
+  const ogImages = ((seo.og_image as string[] | undefined) ?? [])
+    .map((u) => toAbsoluteImage(u)!)
+    .filter(Boolean);
 
+  const items = data?.items as Array<Record<string, string>> | undefined;
   let cover: string | undefined;
-  if (ogImages.length === 0 && data?.items?.length > 0) {
-    const first = data.items[0];
-    if (first?.poster_url) cover = toAbsolute(first.poster_url);
-    else if (first?.thumb_url) cover = toAbsolute(first.thumb_url);
+  if (!ogImages.length && items?.length) {
+    const first = items[0];
+    cover =
+      toAbsoluteImage(first.poster_url) || toAbsoluteImage(first.thumb_url);
   }
 
   const images =
     ogImages.length > 0 ? ogImages.slice(0, 3) : cover ? [cover] : undefined;
 
-  const canonical = q ? `/search?q=${encodeURIComponent(q)}` : "/search";
-
-  return {
+  return buildPageMetadata({
     title,
     description,
-    alternates: { canonical },
-    openGraph: {
-      type: seo.og_type || "website",
-      url: canonical,
-      title,
-      description,
-      images,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images,
-    },
-  };
+    canonical,
+    images,
+    absoluteTitle: shouldUseAbsoluteTitle(seo),
+  });
 }

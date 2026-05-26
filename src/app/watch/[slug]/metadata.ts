@@ -1,86 +1,102 @@
 import type { Metadata } from "next";
 import { apiGet } from "@/services/axiosClient";
+import {
+  buildPageMetadata,
+  cleanSeoText,
+  pickParam,
+  toAbsoluteImage,
+  type SearchParams,
+} from "@/lib/seo";
 
-const toAbsolute = (u?: string) =>
-  u && /^https?:\/\//i.test(u)
-    ? u
-    : u
-    ? `https://phimimg.com/${u.replace(/^\/+/, "")}`
-    : undefined;
+type MetadataProps = {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<SearchParams>;
+};
 
-const stripHtml = (html?: string) =>
-  (html || "")
-    .replace(/<br\s*\/?>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+function episodeLabel(ep: string | undefined): string {
+  if (ep === undefined || ep === "") return "";
+  const n = Number(ep);
+  if (Number.isNaN(n)) return ` - Tập ${ep}`;
+  return ` - Tập ${n + 1}`;
+}
 
-export async function generateMetadata({
+export async function generateWatchMetadata({
   params,
   searchParams,
-}: {
-  params: Promise<{ slug: string }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}): Promise<Metadata> {
+}: MetadataProps): Promise<Metadata> {
   const { slug } = await params;
   const sp = await searchParams;
+  const ep = pickParam(sp, "ep");
+  const epSuffix = episodeLabel(ep);
 
-  const epParam = Array.isArray(sp?.ep) ? sp.ep[0] : sp?.ep;
-  const epName = epParam ? ` - Tập ${epParam}` : "";
-
-  let payload: any = {};
+  let payload: Record<string, unknown> = {};
   let errored = false;
+
   try {
-    const res = await apiGet<any>(`/phim/${encodeURIComponent(slug)}`, {
-      baseKey: "phim_root",
-    });
-    payload = res?.data ?? res ?? {};
+    const res = await apiGet<Record<string, unknown>>(
+      `/phim/${encodeURIComponent(slug)}`,
+      { baseKey: "phim_root" }
+    );
+    payload = (res?.data as Record<string, unknown>) ?? res ?? {};
   } catch {
     errored = true;
   }
 
-  const seo = payload?.seoOnPage ?? {};
-  const mv = payload?.movie ?? payload ?? {};
+  const seo = (payload.seoOnPage ?? {}) as Record<string, unknown>;
+  const mv = (payload.movie ?? payload) as Record<string, unknown>;
+  const movieName = (mv?.name as string | undefined) || "phim";
 
-  const baseTitle = seo.titleHead || mv?.name || "Xem phim online miễn phí";
-  const title = `Xem phim ${mv?.name || baseTitle}${epName}`;
+  const title = seo.titleHead
+    ? `${seo.titleHead as string}${epSuffix}`
+    : `Xem phim ${movieName}${epSuffix}`;
+
+  const rawDescription =
+    (seo.descriptionHead as string | undefined) ||
+    (mv?.content as string | undefined) ||
+    `Xem phim ${movieName} online miễn phí, chất lượng cao.`;
 
   const description =
-    seo.descriptionHead ||
-    stripHtml(mv?.content) ||
-    `Xem phim ${mv?.name || "HD"} online miễn phí, chất lượng cao.`;
+    cleanSeoText(rawDescription) ||
+    `Xem phim ${movieName} online miễn phí, chất lượng cao.`;
 
-  const ogImages: string[] = (seo.og_image ?? [])
-    .map(toAbsolute)
-    .filter(Boolean) as string[];
+  const ogImages = ((seo.og_image as string[] | undefined) ?? [])
+    .map((u) => toAbsoluteImage(u)!)
+    .filter(Boolean);
 
-  const poster = toAbsolute(mv?.poster_url);
-  const thumb = toAbsolute(mv?.thumb_url);
+  const poster = toAbsoluteImage(mv?.poster_url as string | undefined);
+  const thumb = toAbsoluteImage(mv?.thumb_url as string | undefined);
+  const images = (
+    ogImages.length ? ogImages : [poster, thumb].filter(Boolean)
+  ).slice(0, 3) as string[];
 
-  const images = (ogImages.length ? ogImages : [poster, thumb].filter(Boolean))
-    .slice(0, 3) as string[] | undefined;
+  const canonical =
+    ep !== undefined && ep !== "" && ep !== "0"
+      ? `/watch/${slug}?ep=${encodeURIComponent(ep)}`
+      : `/watch/${slug}`;
 
-  const canonical = `/watch/${slug}${epParam ? `?ep=${epParam}` : ""}`;
-
-  return {
+  return buildPageMetadata({
     title,
     description,
-    alternates: { canonical },
+    canonical,
+    images: images.length ? images : undefined,
+    absoluteTitle: true,
+    openGraphType: "video.episode",
     robots: errored
-      ? { index: false, follow: true }
-      : { index: true, follow: true },
-    openGraph: {
-      type: "video.episode",
-      url: canonical,
-      title,
-      description,
-      images,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images,
-    },
-  };
+      ? {
+          index: false,
+          follow: true,
+          googleBot: { index: false, follow: true },
+        }
+      : {
+          index: true,
+          follow: true,
+          googleBot: {
+            index: true,
+            follow: true,
+            "max-image-preview": "large",
+            "max-snippet": -1,
+            "max-video-preview": -1,
+          },
+        },
+  });
 }

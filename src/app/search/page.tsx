@@ -1,7 +1,15 @@
 import SearchPage from "@/app/search/SearchClient";
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
-export { generateMetadata } from "./metadata";
+import { generateSearchMetadata } from "./metadata";
+
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata(
+  props: Parameters<typeof generateSearchMetadata>[0]
+) {
+  return generateSearchMetadata(props);
+}
 
 export default function Page() {
   return (

@@ -1,69 +1,65 @@
 import type { Metadata } from "next";
 import { apiGet } from "@/services/axiosClient";
+import { buildPageMetadata, cleanSeoText, toAbsoluteImage } from "@/lib/seo";
 
-const toAbsolute = (u?: string) =>
-  u && /^https?:\/\//i.test(u)
-    ? u
-    : u
-    ? `https://phimimg.com/${u.replace(/^\/+/, "")}`
-    : undefined;
-
-const stripHtml = (html?: string) =>
-  (html || "")
-    .replace(/<br\s*\/?>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-
-export async function generateMetadata({
-  params,
-}: {
+type MetadataProps = {
   params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
-  // ✅ Phải await params trong Next.js 15
-  const { slug } = await params;
+};
 
-  let payload: any = {};
+export async function generateMovieMetadata({
+  params,
+}: MetadataProps): Promise<Metadata> {
+  const { slug } = await params;
+  const canonical = `/movies/${slug}`;
+
+  let payload: Record<string, unknown> = {};
   let errored = false;
 
   try {
-    const res = await apiGet<any>(`/phim/${encodeURIComponent(slug)}`, {
-      baseKey: "phim_root",
-    });
-    payload = res?.data ?? res ?? {};
+    const res = await apiGet<Record<string, unknown>>(
+      `/phim/${encodeURIComponent(slug)}`,
+      { baseKey: "phim_root" }
+    );
+    payload = (res?.data as Record<string, unknown>) ?? res ?? {};
   } catch {
     errored = true;
   }
 
-  const seo = payload?.seoOnPage ?? {};
-  const mv = payload?.movie ?? payload ?? {};
+  const seo = (payload.seoOnPage ?? {}) as Record<string, unknown>;
+  const mv = (payload.movie ?? payload) as Record<string, unknown>;
 
-  const baseTitle =
-    seo.titleHead || mv?.name || "Rổ Phim - Xem Phim Online HD";
+  const title =
+    (seo.titleHead as string | undefined) ||
+    (mv?.name as string | undefined) ||
+    "Xem phim online HD";
 
+  const rawDescription =
+    (seo.descriptionHead as string | undefined) ||
+    (mv?.content as string | undefined) ||
+    "Xem phim online miễn phí, chất lượng HD, cập nhật nhanh.";
   const description =
-    seo.descriptionHead ||
-    stripHtml(mv?.content) ||
+    cleanSeoText(rawDescription) ||
     "Xem phim online miễn phí, chất lượng HD, cập nhật nhanh.";
 
-  const ogImages: string[] = (seo.og_image ?? [])
-    .map(toAbsolute)
-    .filter(Boolean) as string[];
+  const ogImages = ((seo.og_image as string[] | undefined) ?? [])
+    .map((u) => toAbsoluteImage(u)!)
+    .filter(Boolean);
 
-  const poster = toAbsolute(mv?.poster_url);
-  const thumb = toAbsolute(mv?.thumb_url);
-
+  const poster = toAbsoluteImage(mv?.poster_url as string | undefined);
+  const thumb = toAbsoluteImage(mv?.thumb_url as string | undefined);
   const images = (
     ogImages.length ? ogImages : [poster, thumb].filter(Boolean)
-  ).slice(0, 3) as string[] | undefined;
+  ).slice(0, 3) as string[];
 
-  const canonical = `/movies/${slug}`;
   const noindex = errored || !mv?.name;
 
-  return {
-    title: baseTitle,
+  return buildPageMetadata({
+    title,
     description,
-    alternates: { canonical },
+    canonical,
+    images: images.length ? images : undefined,
+    absoluteTitle: true,
+    openGraphType: "video.movie",
     robots: noindex
       ? {
           index: false,
@@ -71,18 +67,5 @@ export async function generateMetadata({
           googleBot: { index: false, follow: true },
         }
       : { index: true, follow: true },
-    openGraph: {
-      type: (seo.og_type as any) || "video.movie",
-      url: canonical,
-      title: baseTitle,
-      description,
-      images,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: baseTitle,
-      description,
-      images,
-    },
-  };
+  });
 }

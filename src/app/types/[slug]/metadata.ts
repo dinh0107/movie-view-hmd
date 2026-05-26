@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
 import { apiGet } from "@/services/axiosClient";
-
-const toAbsolute = (u: string) =>
-  /^https?:\/\//i.test(u) ? u : `https://phimimg.com/${u.replace(/^\/+/, "")}`;
+import {
+  buildCanonicalPath,
+  buildPageMetadata,
+  pickParam,
+  shouldUseAbsoluteTitle,
+  toAbsoluteImage,
+  type SearchParams,
+} from "@/lib/seo";
 
 const SLUG_MAP: Record<string, string> = {
   "phim-moi-cap-nhat": "Phim mới cập nhật",
@@ -21,80 +26,85 @@ const prettyFromSlug = (slug: string) =>
   SLUG_MAP[slug] ||
   slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
-export async function generateMetadata(
-  props: {
-    params: Promise<{ slug: string }>;
-    searchParams: Promise<Record<string, string | string[] | undefined>>;
-  }
-): Promise<Metadata> {
-  const { slug: raw } = await props.params;
-  const sp = await props.searchParams;
+type MetadataProps = {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<SearchParams>;
+};
 
-  const pick = (k: string) => {
-    const v = sp?.[k];
-    return Array.isArray(v) ? v[0] : v;
-  };
-
+export async function generateTypeMetadata({
+  params,
+  searchParams,
+}: MetadataProps): Promise<Metadata> {
+  const { slug: raw } = await params;
+  const sp = await searchParams;
   const slug = sanitize(raw);
+  const page = Number(pickParam(sp, "page") ?? 1) || 1;
   const isNewest = slug === "phim-moi-cap-nhat";
   const baseKey = isNewest ? "phim_root" : "phim_v1";
 
   const q = new URLSearchParams({
-    page: String(pick("page") ?? 1),
-    limit: String(pick("limit") ?? 15),
+    page: String(page),
+    limit: String(pickParam(sp, "limit") ?? 15),
   });
-  const category = pick("category");
-  const country  = pick("country");
-  const sortLang = pick("sort_lang");
-  const year     = pick("year");
-
+  const category = pickParam(sp, "category");
+  const country = pickParam(sp, "country");
+  const sortLang = pickParam(sp, "sort_lang");
+  const year = pickParam(sp, "year");
   if (category) q.set("category", category);
-  if (country)  q.set("country", country);
+  if (country) q.set("country", country);
   if (!isNewest && sortLang) q.set("sort_lang", sortLang);
   if (year) q.set("year", year);
 
-  const path = `/danh-sach/${encodeURIComponent(slug)}?${q.toString()}`;
-  const res = await apiGet<any>(path, {
-    baseKey,
-    fallbackBases: isNewest ? undefined : ["phim_root"],
-  });
-
-  const p = isNewest ? (res ?? {}) : (res?.data ?? {});
-  const seo = p?.seoOnPage ?? {};
-
+  const canonical = buildCanonicalPath(`/types/${slug}`, { page });
   const pretty = prettyFromSlug(slug);
-  const title =
-    seo.titleHead ||
-    p?.titlePage ||
-    `${pretty}`;
 
-  const description =
-    seo.descriptionHead ||
-    "Xem phim online miễn phí, chất lượng HD, cập nhật nhanh.";
+  let payload: Record<string, unknown> = {};
+  try {
+    const res = await apiGet<Record<string, unknown>>(
+      `/danh-sach/${encodeURIComponent(slug)}?${q.toString()}`,
+      { baseKey, fallbackBases: isNewest ? undefined : ["phim_root"] }
+    );
+    payload = isNewest ? (res ?? {}) : ((res?.data as Record<string, unknown>) ?? {});
+  } catch (err) {
+    console.error("[types] generateMetadata:", err);
+    const title = page > 1 ? `${pretty} - Trang ${page}` : pretty;
+    return buildPageMetadata({
+      title,
+      description: "Xem phim online miễn phí, chất lượng HD, cập nhật nhanh.",
+      canonical,
+    });
+  }
 
-  const images = (seo.og_image ?? [])
-    .map(toAbsolute)
+  const seo = (payload.seoOnPage ?? {}) as Record<string, unknown>;
+  const baseTitle =
+    (seo.titleHead as string | undefined) ||
+    (payload.titlePage as string | undefined) ||
+    pretty;
+  const title = page > 1 ? `${baseTitle} - Trang ${page}` : baseTitle;
+
+  const images = ((seo.og_image as string[] | undefined) ?? [])
+    .map((u) => toAbsoluteImage(u)!)
     .filter(Boolean)
-    .slice(0, 3); 
+    .slice(0, 3);
 
-  const canonical = `/types/${slug}`;
+  const titlePage = payload.titlePage as string | undefined;
+  const listItems = payload.items as unknown[] | undefined;
+  const noItems = !Array.isArray(listItems) || listItems.length === 0;
 
-  return {
+  return buildPageMetadata({
     title,
-    description,
-    alternates: { canonical },
-    openGraph: {
-      type: seo.og_type || "website",
-      url: canonical,
-      title,
-      description,
-      images: images.length ? images : undefined,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: images.length ? images : undefined,
-    },
-  };
+    description:
+      (seo.descriptionHead as string | undefined) ||
+      "Xem phim online miễn phí, chất lượng HD, cập nhật nhanh.",
+    canonical,
+    images: images.length ? images : undefined,
+    absoluteTitle: shouldUseAbsoluteTitle(seo, titlePage),
+    robots: noItems
+      ? {
+          index: false,
+          follow: true,
+          googleBot: { index: false, follow: true },
+        }
+      : { index: true, follow: true },
+  });
 }

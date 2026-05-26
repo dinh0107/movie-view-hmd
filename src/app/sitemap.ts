@@ -1,43 +1,82 @@
 import type { MetadataRoute } from "next";
 import { getAllMovies } from "@/lib/utils";
+import { SITE_URL } from "@/lib/site";
+import { fetchCategory, fetchCountries } from "@/services/hederService";
 
-export const revalidate = 3600; 
-export const dynamic = "force-static"; 
+export const revalidate = 3600;
+export const dynamic = "force-dynamic";
+
+const TYPE_SLUGS = [
+  "phim-moi-cap-nhat",
+  "phim-bo",
+  "phim-le",
+  "hoat-hinh",
+  "tv-shows",
+];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://phimngay.top";
+  const now = new Date();
+
   const staticItems: MetadataRoute.Sitemap = [
     {
-      url: `${siteUrl}/`,
+      url: `${SITE_URL}/`,
       changeFrequency: "daily",
       priority: 1,
-      lastModified: new Date(),
+      lastModified: now,
     },
     {
-      url: `${siteUrl}/bang-xep-hang`,
+      url: `${SITE_URL}/search`,
       changeFrequency: "weekly",
-      priority: 0.8,
-      lastModified: new Date(),
+      priority: 0.5,
+      lastModified: now,
     },
   ];
 
-  try {
-    const movies = await getAllMovies();
+  const typeItems: MetadataRoute.Sitemap = TYPE_SLUGS.map((slug) => ({
+    url: `${SITE_URL}/types/${slug}`,
+    changeFrequency: "daily" as const,
+    priority: 0.85,
+    lastModified: now,
+  }));
 
-    if (!Array.isArray(movies) || movies.length === 0) {
-      return staticItems;
-    }
+  const [categories, countries, movies] = await Promise.all([
+    fetchCategory(),
+    fetchCountries(),
+    getAllMovies().catch(() => []),
+  ]);
 
-    const dynamicItems: MetadataRoute.Sitemap = movies.map((m) => ({
-      url: `${siteUrl}/movies/${m.slug}`,
-      lastModified: m.updatedAt ? new Date(m.updatedAt) : new Date(),
-      changeFrequency: "weekly",
-      priority: 0.7,
+  const categoryItems: MetadataRoute.Sitemap = categories
+    .filter((c) => c.slug)
+    .map((c) => ({
+      url: `${SITE_URL}/categories/${c.slug}`,
+      changeFrequency: "daily" as const,
+      priority: 0.8,
+      lastModified: now,
     }));
 
-    return [...staticItems, ...dynamicItems];
-  } catch (err) {
-    console.error("Sitemap fetch error:", err);
-    return staticItems; 
-  }
+  const countryItems: MetadataRoute.Sitemap = countries
+    .filter((c) => c.slug)
+    .map((c) => ({
+      url: `${SITE_URL}/countries/${c.slug}`,
+      changeFrequency: "daily" as const,
+      priority: 0.8,
+      lastModified: now,
+    }));
+
+  const movieItems: MetadataRoute.Sitemap = (
+    Array.isArray(movies) ? movies : []
+  ).map((m) => ({
+    url: `${SITE_URL}/movies/${m.slug}`,
+    lastModified: m.updatedAt ? new Date(m.updatedAt) : now,
+    changeFrequency: "weekly" as const,
+    priority: 0.7,
+  }));
+
+  return [
+    ...staticItems,
+    ...typeItems,
+    ...categoryItems,
+    ...countryItems,
+    ...movieItems,
+  ];
 }

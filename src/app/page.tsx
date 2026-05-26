@@ -1,10 +1,33 @@
+import type { Metadata } from "next";
 import HeroBannerSlider from "@/components/layout/carousel/HeroBannerSlider";
 import HotSearchBannerSlider from "@/components/layout/carousel/HotSearchBannerSlider";
-import { CardListSection } from "@/components/sections/CardListSection";
 import MovieCategories from "@/components/sections/MovieSection";
-import PersonListSection from "@/components/sections/PersonListSection";
-import { movieCountries, movieGenres } from "@/contants/mock-movies";
-import React from "react";
+import { SITE_URL } from "@/lib/site";
+
+export const metadata: Metadata = {
+  title: {
+    absolute:
+      "Phim ngay - Xem Phim Online HD, Phim Mới Cập Nhật Nhanh",
+  },
+  alternates: {
+    canonical: "/",
+    languages: { "vi-VN": "/" },
+  },
+  openGraph: {
+    url: SITE_URL,
+    title: "Phim ngay - Xem Phim Online HD, Phim Mới Cập Nhật Nhanh",
+    description:
+      "Xem phim online miễn phí, HD, cập nhật nhanh. Kho phim đa dạng: hành động, tình cảm, hoạt hình...",
+    images: [
+      {
+        url: "/og/og-home.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Phim ngay - Xem Phim Online HD",
+      },
+    ],
+  },
+};
 
 const HomePage = () => {
   return (
@@ -12,10 +35,6 @@ const HomePage = () => {
       <HeroBannerSlider />
       <MovieCategories />
       <HotSearchBannerSlider />
-      {/* <PersonListSection />
-      <PersonListSection />
-      <CardListSection title="Movie Genres" data={movieGenres} />
-      <CardListSection title="Movie Countries" data={movieCountries} /> */}
     </main>
   );
 };
