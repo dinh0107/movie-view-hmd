@@ -1,10 +1,5 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { SITE_URL } from "@/lib/site"
-export type Movie = {
-  slug: string;
-  updatedAt: string;
-};
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
@@ -78,29 +73,6 @@ export function fixApiPath(path: string) {
   }
   return p;
 }
-
-
-export async function getAllMovies(): Promise<Movie[]> {
-  const origin =
-    process.env.API_ORIGIN || SITE_URL || "http://localhost:3000";
-
-  try {
-    const res = await fetch(`${origin}/api/movies?limit=5000`, {
-      next: { revalidate: 3600 }, 
-    });
-
-    if (!res.ok) {
-      throw new Error(`Fetch movies failed: ${res.status}`);
-    }
-
-    return (await res.json()) as Movie[];
-  } catch (err) {
-    console.error("getAllMovies error:", err);
-    return [];
-  }
-}
-
-
 export const sanitizeSlug = (slug: string) => {
   if (slug === "phim-moi-cap-nhat" || slug.startsWith("phim-moi-cap-nhat")) {
     return "phim-moi-cap-nhat"; 

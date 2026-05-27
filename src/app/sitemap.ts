@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getAllMovies } from "@/lib/utils";
+import { getSitemapMovies } from "@/lib/map";
 import { SITE_URL } from "@/lib/site";
 import { fetchCategory, fetchCountries } from "@/services/hederService";
 
@@ -42,7 +42,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [categories, countries, movies] = await Promise.all([
     fetchCategory(),
     fetchCountries(),
-    getAllMovies().catch(() => []),
+    getSitemapMovies(20).catch(() => []),
   ]);
 
   const categoryItems: MetadataRoute.Sitemap = categories

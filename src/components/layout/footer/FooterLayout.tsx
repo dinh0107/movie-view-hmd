@@ -89,7 +89,7 @@ export default function FooterLayout() {
              bg-clip-text text-transparent"
           >
             <FilmIcon className="w-6 h-6 text-red-500" />
-            Dành Cho Hoa
+            Phim ngay
           </Link>
         </div>
 
