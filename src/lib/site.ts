@@ -1,2 +1,2 @@
 export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://ro-phim.vn";
+  process.env.NEXT_PUBLIC_SITE_URL || "https://phimngay.top";
