@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { securityHeaders } from "./src/lib/security-headers";
 
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
@@ -13,6 +14,14 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: projectRoot,
   turbopack: {
     root: projectRoot,
+  },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: securityHeaders,
+      },
+    ];
   },
 };
 
