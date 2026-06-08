@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, Film, XCircle, Loader2 } from "lucide-react";
+import { Search, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -60,24 +60,24 @@ export default function SearchDialog() {
         <Button
           variant="ghost"
           size="icon"
-          className="text-white hover:text-red-400 cursor-pointer"
+          className="text-muted-foreground hover:text-primary"
         >
-          <Search className="w-6 h-6" />
+          <Search className="size-5" />
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-2xl w-full mt-[-15vh] p-4 md:p-6 bg-gray-900 text-white rounded-2xl shadow-2xl border border-gray-700">
-        <DialogTitle className="text-xl font-semibold mb-4 text-red-400">
+      <DialogContent className="mt-[-12vh] w-full max-w-2xl rounded-2xl border-border/60 p-4 shadow-2xl sm:p-6">
+        <DialogTitle className="mb-4 text-xl font-semibold text-primary">
           Tìm kiếm phim
         </DialogTitle>
 
-        <div className="relative md:mb-4 flex gap-2">
+        <div className="flex gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
             <Input
               autoFocus
               placeholder="Nhập tên phim..."
-              className="w-full bg-gray-900 border-gray-700 text-white placeholder-gray-400 text-lg pl-12 pr-4 py-3 h-12 rounded-xl"
+              className="h-12 rounded-xl pl-11 text-base"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => {
@@ -85,25 +85,22 @@ export default function SearchDialog() {
               }}
             />
           </div>
-          <Button
-            onClick={handleSearch}
-            className="bg-red-500 hover:bg-red-600 text-white text-lg rounded-md h-12 px-6 cursor-pointer"
-          >
+          <Button onClick={handleSearch} className="h-12 px-6">
             Tìm
           </Button>
         </div>
 
-        <div className="mt-2 max-h-72 overflow-y-auto scrollbar-thin scrollbar-thumb-red-500 scrollbar-track-gray-800 scrollbar-thumb-rounded-full scrollbar-track-rounded-full">
+        <div className="mt-3 max-h-72 overflow-y-auto">
           {loading ? (
-            <div className="flex justify-center items-center py-6">
-              <Loader2 className="w-6 h-6 text-red-500 animate-spin" />
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="size-6 animate-spin text-primary" />
             </div>
           ) : search.trim() === "" ? (
-            <p className="text-gray-400 text-center py-4">
+            <p className="py-6 text-center text-sm text-muted-foreground">
               Nhập từ khóa để tìm phim
             </p>
           ) : results.length > 0 ? (
-            <ul className="space-y-2">
+            <ul className="space-y-1">
               {results.map((movie) => (
                 <li key={movie.id}>
                   <Link
@@ -112,22 +109,22 @@ export default function SearchDialog() {
                       setSearch("");
                       setOpen(false);
                     }}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer"
+                    className="flex items-center gap-3 rounded-xl px-3 py-2 transition hover:bg-accent"
                   >
                     <img
                       src={movie.thumb_url}
                       alt={movie.name}
-                      className="w-10 h-14 object-cover rounded-md border border-gray-700"
+                      className="h-14 w-10 rounded-lg border border-border object-cover"
                     />
-                    <span className="text-white">{movie.name}</span>
+                    <span className="text-sm font-medium">{movie.name}</span>
                   </Link>
                 </li>
               ))}
             </ul>
           ) : (
-            <div className="flex flex-col items-center justify-center py-6 text-gray-500">
-              <XCircle className="w-8 h-8 mb-2 text-gray-600" />
-              <p>Không tìm thấy phim nào</p>
+            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+              <XCircle className="mb-2 size-8 opacity-50" />
+              <p className="text-sm">Không tìm thấy phim nào</p>
             </div>
           )}
         </div>

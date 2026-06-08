@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Play } from "lucide-react";
 import Link from "next/link";
 import { movieService } from "@/services/apiService";
+import { MovieCard, type MovieCardData } from "@/components/movie/MovieCard";
 
 const sectionsConfig = [
   { title: "Phim mới cập nhật", slug: "phim-moi-cap-nhat", api: "/danh-sach/phim-moi-cap-nhat-v2" },
@@ -17,20 +17,10 @@ const sectionsConfig = [
 
 type MovieSectionProps = {
   title: string;
-  movies: Movie[];
+  movies: MovieCardData[];
   slug: string;
   api: string;
 };
-
-interface Movie {
-  id: string;
-  name: string;
-  slug: string;
-  poster_url: string;
-  thumb_url: string;
-  year: number;
-  episode_current: string;
-}
 
 const MovieSection = ({ title, movies, slug, api }: MovieSectionProps) => {
   const href = api.startsWith("/the-loai")
@@ -38,83 +28,65 @@ const MovieSection = ({ title, movies, slug, api }: MovieSectionProps) => {
     : `/types/${slug}`;
 
   return (
-    <div className="mb-12">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl sm:text-3xl font-bold text-white">{title}</h2>
+    <motion.section
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      className="mb-14"
+    >
+      <div className="mb-5 flex items-center justify-between">
+        <h2 className="section-title">{title}</h2>
         <Link
           href={href}
-          className="text-sm sm:text-base text-red-500 hover:text-red-600 transition-colors duration-300"
+          className="text-sm font-medium text-primary transition hover:text-primary/80"
         >
-          Xem thêm
+          Xem thêm →
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
         {movies.map((movie, i) => (
-          <Link key={movie.slug || i} href={`/movies/${movie.slug}`}>
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              className="relative cursor-pointer rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition"
-            >
-              <img
-                src={movie.thumb_url || movie.poster_url}
-                alt={movie.name}
-                className="w-full aspect-[0.7] object-cover transition-transform duration-300 hover:scale-110"
-              />
-
-              {movie.episode_current && (
-                <span className="absolute top-2 left-2 bg-black/85 text-white text-xs font-bold px-2 py-1 rounded-md shadow-md">
-                  {movie.episode_current}
-                </span>
-              )}
-
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col justify-end p-3">
-                <h3 className="text-white font-bold text-sm sm:text-base line-clamp-2 mb-2">
-                  {movie.name}
-                </h3>
-                <button className="flex items-center justify-center gap-2 cursor-pointer bg-red-500 hover:bg-red-6  00 text-white px-4 py-2 rounded-lg text-sm font-bold transition transform hover:scale-105">
-                  <Play size={16} /> Xem ngay
-                </button>
-              </div>
-            </motion.div>
-          </Link>
+          <motion.div
+            key={movie.slug || i}
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: i * 0.04 }}
+          >
+            <MovieCard movie={movie} />
+          </motion.div>
         ))}
       </div>
-    </div>
+    </motion.section>
   );
 };
 
 export default function MovieCategories() {
   const [sections, setSections] = useState<
-    { title: string; slug: string; movies: Movie[]; api: string }[]
+    { title: string; slug: string; api: string; movies: MovieCardData[] }[]
   >([]);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const load = async () => {
       const data = await Promise.all(
-        sectionsConfig.map(async (sec) => ({
-          ...sec,
-          movies: await movieService.getMoviesByType(sec.api, 1, 12),
-        }))
+        sectionsConfig.map(async (s) => {
+          try {
+            const movies = await movieService.getMoviesByType(s.api, 1, 12);
+            return { ...s, movies: movies.slice(0, 12) };
+          } catch {
+            return { ...s, movies: [] };
+          }
+        })
       );
-      setSections(data);
+      setSections(data.filter((s) => s.movies.length > 0));
     };
-
-    fetchData();
+    load();
   }, []);
 
   return (
-    <div className="px-4 sm:px-8 py-8">
-      {sections.map((sec) => (
-        <MovieSection
-          key={sec.title}
-          title={sec.title}
-          movies={sec.movies}
-          slug={sec.slug}
-          api={sec.api}
-        />
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+      {sections.map((s) => (
+        <MovieSection key={s.slug} {...s} />
       ))}
     </div>
   );

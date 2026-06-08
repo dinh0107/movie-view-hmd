@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
-import Hls from "hls.js";
 import { movieDetailService } from "@/services/apiService";
+import { VideoPlayer } from "@/components/player/VideoPlayer";
 import type {
   EpisodeServer,
   EpisodeSource,
   MovieDetail,
 } from "@/services/apiService";
-import { Play, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 
 export default function WatchPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -128,13 +128,14 @@ export default function WatchPage() {
     );
 
   return (
-    <main className="min-h-screen bg-[#0b0e13] text-white py-3">
+    <main className="page-shell py-3">
       <div className="container mx-auto px-4">
-        <div className="aspect-video w-full overflow-hidden rounded-2xl ring-1 ring-white/10 bg-black">
-          <SmartPlayer
+        <div className="aspect-video w-full overflow-hidden rounded-2xl ring-1 ring-border bg-black">
+          <VideoPlayer
             m3u8={playable.m3u8}
             embed={playable.embed}
             title={detail.name}
+            poster={detail.poster_url || detail.thumb_url}
           />
         </div>
       </div>
@@ -271,165 +272,4 @@ export default function WatchPage() {
       <div className="py-10" />
     </main>
   );
-}
-
-function SmartPlayer({
-  m3u8,
-  embed,
-  title,
-}: {
-  m3u8: string | null;
-  embed: string | null;
-  title: string;
-}) {
-  const [isFallback, setIsFallback] = useState(false);
-
-  // Reset fallback state when sources change
-  useEffect(() => {
-    setIsFallback(false);
-  }, [m3u8, embed]);
-
-  if (m3u8 && !isFallback) {
-    return (
-      <HlsVideo
-        src={m3u8}
-        title={title}
-        onError={() => {
-          console.warn("m3u8 playback failed, falling back to embed link");
-          setIsFallback(true);
-        }}
-      />
-    );
-  }
-
-  if (embed) {
-    const url = withAutoplay(embed);
-    return (
-      <iframe
-        key={url}
-        src={url}
-        title={title}
-        className="h-full w-full"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        referrerPolicy="strict-origin-when-cross-origin"
-        allowFullScreen
-      />
-    );
-  }
-
-  return (
-    <div className="h-full w-full grid place-items-center text-white/70">
-      <div className="flex items-center gap-2">
-        <Play className="w-5 h-5" /> Không có nguồn phát.
-      </div>
-    </div>
-  );
-}
-
-function HlsVideo({
-  src,
-  title,
-  onError,
-}: {
-  src: string;
-  title: string;
-  onError?: () => void;
-}) {
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const hlsRef = useRef<Hls | null>(null);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    const onNativeError = () => {
-      console.error("Native video error");
-      onError?.();
-    };
-
-    if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = src;
-      video.addEventListener("error", onNativeError);
-      video.play().catch(() => {});
-      return () => {
-        video.removeEventListener("error", onNativeError);
-        video.removeAttribute("src");
-        video.load();
-      };
-    }
-
-    if (Hls.isSupported()) {
-      const hls = new Hls({
-        maxBufferLength: 30,
-        enableWorker: true,
-        backBufferLength: 60,
-      });
-      hlsRef.current = hls;
-      hls.attachMedia(video);
-      hls.on(Hls.Events.MEDIA_ATTACHED, () => hls.loadSource(src));
-
-      hls.on(Hls.Events.ERROR, (_, data) => {
-        if (data.fatal) {
-          switch (data.type) {
-            case Hls.ErrorTypes.NETWORK_ERROR:
-              if (
-                data.details === Hls.ErrorDetails.MANIFEST_LOAD_ERROR ||
-                data.details === Hls.ErrorDetails.MANIFEST_LOAD_TIMEOUT ||
-                data.details === Hls.ErrorDetails.LEVEL_LOAD_ERROR
-              ) {
-                console.error("HLS Network fatal error: source is likely dead", data);
-                hls.destroy();
-                onError?.();
-              } else {
-                hls.startLoad();
-              }
-              break;
-            case Hls.ErrorTypes.MEDIA_ERROR:
-              hls.recoverMediaError();
-              break;
-            default:
-              console.error("HLS Unrecoverable error", data);
-              hls.destroy();
-              onError?.();
-              break;
-          }
-        }
-      });
-    }
-
-    return () => {
-      if (hlsRef.current) {
-        hlsRef.current.destroy();
-        hlsRef.current = null;
-      }
-      if (video) {
-        video.removeAttribute("src");
-        video.load();
-      }
-    };
-  }, [src, onError]);
-
-  return (
-    <video
-      ref={videoRef}
-      className="h-full w-full outline-none"
-      controls
-      playsInline
-      preload="auto"
-      poster=""
-      aria-label={title}
-    />
-  );
-}
-
-function withAutoplay(u: string) {
-  try {
-    const url = new URL(u);
-    if (!url.searchParams.has("autoplay"))
-      url.searchParams.set("autoplay", "1");
-    if (url.hostname.includes("youtube.com")) url.searchParams.set("rel", "0");
-    return url.toString();
-  } catch {
-    return u + (u.includes("?") ? "&" : "?") + "autoplay=1";
-  }
 }

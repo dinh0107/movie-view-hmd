@@ -170,7 +170,7 @@ export default function MoviesPage() {
   }, [slug, page, category, lang, year]);
 
   return (
-    <div className="min-h-screen pb-6 bg-black text-white">
+    <div className="page-shell pb-8">
       <Breadcrumb title={slug ? `Quốc gia: ${countryTitle}` : "Movies"} />
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">

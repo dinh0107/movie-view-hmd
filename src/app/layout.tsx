@@ -4,7 +4,8 @@ import "./globals.css";
 import HeaderLayout from "@/components/layout/header/HeaderLayout";
 import FooterLayout from "@/components/layout/footer/FooterLayout";
 import { MenuProvider } from "@/context/MenuContext";
-import { Analytics } from '@vercel/analytics/next';
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { SITE_URL } from "@/lib/site";
 
@@ -15,7 +16,10 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: "#000000",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fafafa" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f1117" },
+  ],
 };
 
 export const metadata: Metadata = {
@@ -46,7 +50,12 @@ export const metadata: Metadata = {
       "Xem phim online miễn phí, HD, cập nhật nhanh. Kho phim đa dạng: hành động, tình cảm, hoạt hình...",
     locale: "vi_VN",
     images: [
-      { url: "/og/og-home.jpg", width: 1200, height: 630, alt: "Phim ngay - Xem Phim Online HD" },
+      {
+        url: "/og/og-home.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Phim ngay - Xem Phim Online HD",
+      },
     ],
   },
   twitter: {
@@ -61,20 +70,25 @@ export const metadata: Metadata = {
     apple: "/favicon.ico",
   },
   applicationName: "Phim ngay",
-  // manifest: "/manifest.webmanifest",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="vi">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black`}>
-        <MenuProvider>
-          <HeaderLayout />
-          {children}
-          <Analytics />
-          <SpeedInsights />
-          <FooterLayout />
-        </MenuProvider>
+    <html lang="vi" suppressHydrationWarning>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} min-h-screen font-sans antialiased`}
+      >
+        <ThemeProvider>
+          <MenuProvider>
+            <div className="flex min-h-screen flex-col">
+              <HeaderLayout />
+              <main className="flex-1">{children}</main>
+              <FooterLayout />
+            </div>
+            <Analytics />
+            <SpeedInsights />
+          </MenuProvider>
+        </ThemeProvider>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

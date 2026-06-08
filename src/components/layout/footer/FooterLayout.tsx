@@ -2,115 +2,68 @@
 
 import { FilmIcon } from "lucide-react";
 import Link from "next/link";
+import { useMenu } from "@/context/MenuContext";
+
+const types = [
+  { title: "Phim bộ", slug: "phim-bo" },
+  { title: "Phim lẻ", slug: "phim-le" },
+  { title: "Hoạt hình", slug: "hoat-hinh" },
+];
 
 export default function FooterLayout() {
-  const categories = [
-    "Hành động",
-    "Tình cảm",
-    "Hoạt hình",
-    "Kinh dị",
-    "Phiêu lưu",
-    "Hài",
-    "Khoa học viễn tưởng",
-    "Viễn tưởng",
-    "Hình sự",
-  ];
-
-  const countries = [
-    "Mỹ",
-    "Việt Nam",
-    "Hàn Quốc",
-    "Nhật Bản",
-    "Trung Quốc",
-    "Ấn Độ",
-    "Thái Lan",
-    "Đài Loan",
-    "Pháp",
-  ];
-
-  const types = ["Phim bộ", "Phim lẻ", "Phim chiếu rạp", "Phim hot"];
-
-  const actors = [
-    "Robert Downey Jr",
-    "Chris Evans",
-    "Tom Holland",
-    "Scarlett Johansson",
-    "Song Kang-ho",
-    "Lee Byung-hun",
-  ];
-
-  const FooterColumn = ({
-    title,
-    items,
-    prefix,
-    split = false,
-  }: {
-    title: string;
-    items: string[];
-    prefix: string;
-    split?: boolean;
-  }) => {
-    const half = split ? Math.ceil(items.length / 2) : items.length;
-    return (
-      <div>
-        <h3 className="text-lg font-semibold text-red-400 mb-4">{title}</h3>
-        <div className={`grid ${split ? "grid-cols-2 gap-6" : "grid-cols-1"}`}>
-          {[items.slice(0, half), split ? items.slice(half) : []].map(
-            (col, i) => (
-              <ul key={i} className="space-y-2">
-                {col.map((item, j) => (
-                  <li key={j}>
-                    <Link
-                      href={`/${prefix}/${item
-                        .toLowerCase()
-                        .replace(/\s/g, "-")}`}
-                      className="hover:text-red-400 transition"
-                    >
-                      {item}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            ),
-          )}
-        </div>
-      </div>
-    );
-  };
+  const { categories, countries } = useMenu();
 
   return (
-    <footer className="bg-black text-white px-6 pt-12 pb-6 border-t border-gray-800">
-      <div className="max-w-7xl px-4 sm:px-6 mx-auto">
-        <div className="flex items-center gap-3 mb-8">
-          <Link
-            href="/"
-            className="text-xl sm:text-2xl font-bold tracking-wide flex items-center justify-center gap-2 
-             bg-gradient-to-r from-red-600 via-pink-500 to-purple-700 
-             bg-clip-text text-transparent"
-          >
-            <FilmIcon className="w-6 h-6 text-red-500" />
-            Phim ngay
-          </Link>
-        </div>
+    <footer className="mt-auto border-t border-border/60 bg-muted/30 px-6 pb-8 pt-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <Link href="/" className="mb-8 inline-flex items-center gap-2 text-xl font-bold">
+          <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <FilmIcon className="size-5" />
+          </span>
+          <span className="brand-gradient">Phim ngay</span>
+        </Link>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <FooterColumn title="Thể loại" prefix="categories" items={categories} />
+          <FooterColumn title="Quốc gia" prefix="countries" items={countries} />
           <FooterColumn
-            title="Thể loại"
-            items={categories}
-            prefix="categories"
-          />
-          <FooterColumn title="Quốc gia" items={countries} prefix="countries" />
-          <FooterColumn title="Loại phim" items={types} prefix="types" />
-          <FooterColumn
-            title="Diễn viên nổi bật"
-            items={actors}
-            prefix="actors"
+            title="Loại phim"
+            prefix="types"
+            items={types.map((t) => ({ name: t.title, slug: t.slug }))}
           />
         </div>
       </div>
-      <div className="mt-10 border-t border-gray-800 pt-6 text-center text-gray-500 text-sm">
-        © {new Date().getFullYear()} MovieHub. All rights reserved.
+      <div className="mx-auto mt-10 max-w-7xl border-t border-border/60 px-4 pt-6 text-center text-sm text-muted-foreground sm:px-6">
+        © {new Date().getFullYear()} Phim ngay. All rights reserved.
       </div>
     </footer>
+  );
+}
+
+function FooterColumn({
+  title,
+  items,
+  prefix,
+}: {
+  title: string;
+  items: { name: string; slug?: string }[];
+  prefix: string;
+}) {
+  return (
+    <div>
+      <h3 className="mb-4 text-sm font-semibold text-primary">{title}</h3>
+      <ul className="grid grid-cols-2 gap-x-4 gap-y-2">
+        {items.slice(0, 12).map((item) => (
+          <li key={item.slug ?? item.name}>
+            <Link
+              href={`/${prefix}/${item.slug}`}
+              className="text-sm text-muted-foreground transition hover:text-primary"
+            >
+              {item.name}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

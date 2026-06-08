@@ -4,27 +4,29 @@ import Link from "next/link";
 import HeaderMenu from "./HeaderMenu";
 import SearchDialog from "./SearchDialog";
 import MobileMenu from "./MobileMenu";
-import { Film, FilmIcon } from "lucide-react";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { FilmIcon } from "lucide-react";
 
 export default function HeaderLayout() {
   return (
-    <header className="w-full bg-black text-white top-0 z-50 shadow-lg">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 py-4">
+    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <Link
           href="/"
-          className="text-xl sm:text-2xl font-bold tracking-wide flex items-center justify-center gap-2 
-             bg-gradient-to-r from-red-600 via-pink-500  to-purple-700  
-             bg-clip-text text-transparent"
+          className="flex items-center gap-2 text-xl font-bold tracking-tight sm:text-2xl"
         >
-          <FilmIcon className="w-6 h-6 text-red-500" />
-          Phim ngay
+          <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <FilmIcon className="size-5" />
+          </span>
+          <span className="brand-gradient">Phim ngay</span>
         </Link>
 
         <div className="hidden md:flex">
           <HeaderMenu />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
+          <ThemeToggle />
           <SearchDialog />
           <div className="md:hidden">
             <MobileMenu />

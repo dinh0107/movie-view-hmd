@@ -172,7 +172,7 @@ export default function SearchPage() {
   }, [keyword, page, country, category, lang, year]);
 
   return (
-    <div className="min-h-screen pb-6 bg-black text-white">
+    <div className="page-shell pb-8">
       <Breadcrumb title={keyword ? `Kết quả cho: "${keyword}"` : "Tìm kiếm"} />
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">

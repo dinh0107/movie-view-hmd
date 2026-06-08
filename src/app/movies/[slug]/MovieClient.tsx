@@ -101,7 +101,7 @@ export default function MovieDetailPage({ slug }: { slug: string }) {
   }
 
   return (
-    <main className="min-h-screen bg-[#0b0e13] text-white">
+    <main className="page-shell">
       {/* HERO */}
       <section className="relative">
         <img
@@ -190,7 +190,7 @@ export default function MovieDetailPage({ slug }: { slug: string }) {
                 )}
                 <Link
                   href={`/watch/${movie.slug}`}
-                  className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-5 py-3 text-sm font-semibold text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-white/30"
+                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   <Tv className="h-5 w-5" /> Xem ngay
                 </Link>

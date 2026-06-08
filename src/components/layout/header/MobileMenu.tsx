@@ -12,6 +12,7 @@ import {
 import { useMenu } from "@/context/MenuContext";
 import { Menu } from "lucide-react";
 import Link from "next/link";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 const types = [
   { title: "Phim bộ", slug: "phim-bo" },
@@ -20,79 +21,91 @@ const types = [
 ];
 
 export default function MobileMenu() {
-  const { categories, countries, loading } = useMenu();
+  const { categories, countries } = useMenu();
 
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-white hover:text-red-400"
-        >
-          <Menu className="w-6 h-6" />
+        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
+          <Menu className="size-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="bg-gray-900 text-white p-6">
-        <SheetHeader className="hidden">
-          <SheetTitle></SheetTitle>
+      <SheetContent side="right" className="w-[min(320px,85vw)] border-border/60 bg-background p-6">
+        <SheetHeader>
+          <SheetTitle className="text-left text-lg font-bold brand-gradient">
+            Menu
+          </SheetTitle>
         </SheetHeader>
-        <nav className="flex flex-col space-y-4 overflow-y-auto hidden-scrollbar">
+        <div className="mt-4 flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">Giao diện</span>
+          <ThemeToggle />
+        </div>
+        <nav className="mt-4 flex flex-col gap-6 overflow-y-auto hidden-scrollbar">
           <SheetClose asChild>
-            <Link href="/" className="hover:text-red-400">
+            <Link href="/" className="font-medium text-foreground hover:text-primary">
               Trang chủ
             </Link>
           </SheetClose>
 
-          <div>
-            <p className="text-red-400 font-semibold">Thể loại</p>
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              {categories.map((cat) => (
-                <SheetClose asChild key={cat.id}>
-                  <Link
-                    href={`/categories/${cat.slug}`}
-                    className="text-sm hover:text-red-400"
-                  >
-                    {cat.name}
-                  </Link>
-                </SheetClose>
-              ))}
-            </div>
-          </div>
+          <MobileSection title="Thể loại">
+            {categories.map((cat) => (
+              <SheetClose asChild key={cat.id}>
+                <Link
+                  href={`/categories/${cat.slug}`}
+                  className="text-sm text-muted-foreground hover:text-primary"
+                >
+                  {cat.name}
+                </Link>
+              </SheetClose>
+            ))}
+          </MobileSection>
 
-          <div>
-            <p className="text-red-400 font-semibold">Quốc gia</p>
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              {countries.map((c) => (
-                <SheetClose asChild key={c.id}>
-                  <Link
-                    href={`/countries/${c.slug}`}
-                    className="text-sm hover:text-red-400"
-                  >
-                    {c.name}
-                  </Link>
-                </SheetClose>
-              ))}
-            </div>
-          </div>
+          <MobileSection title="Quốc gia">
+            {countries.map((c) => (
+              <SheetClose asChild key={c.id}>
+                <Link
+                  href={`/countries/${c.slug}`}
+                  className="text-sm text-muted-foreground hover:text-primary"
+                >
+                  {c.name}
+                </Link>
+              </SheetClose>
+            ))}
+          </MobileSection>
 
-          <div>
-            <p className="text-red-400 font-semibold">Phim</p>
-            <div className="flex flex-col gap-2 mt-2">
-              {types.map((t, idx) => (
-                <SheetClose asChild key={idx}>
-                  <Link
-                    href={`/types/${t.slug}`}
-                    className="text-sm hover:text-red-400"
-                  >
-                    {t.title}
-                  </Link>
-                </SheetClose>
-              ))}
-            </div>
-          </div>
+          <MobileSection title="Phim" cols={1}>
+            {types.map((t) => (
+              <SheetClose asChild key={t.slug}>
+                <Link
+                  href={`/types/${t.slug}`}
+                  className="text-sm text-muted-foreground hover:text-primary"
+                >
+                  {t.title}
+                </Link>
+              </SheetClose>
+            ))}
+          </MobileSection>
         </nav>
       </SheetContent>
     </Sheet>
+  );
+}
+
+function MobileSection({
+  title,
+  children,
+  cols = 2,
+}: {
+  title: string;
+  children: React.ReactNode;
+  cols?: 1 | 2;
+}) {
+  return (
+    <div>
+      <p className="mb-2 text-sm font-semibold text-primary">{title}</p>
+      <div className={`grid gap-2 ${cols === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+        {children}
+      </div>
+    </div>
   );
 }

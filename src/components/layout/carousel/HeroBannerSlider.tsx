@@ -104,7 +104,7 @@ export default function HeroBannerSlider() {
 
   if (loading || !activeMovie) {
     return (
-      <div className="relative w-full aspect-video md:aspect-[21/9] lg:aspect-[16/9] min-h-[400px] sm:min-h-[500px] md:min-h-[600px] bg-black text-white overflow-hidden">
+      <div className="relative w-full aspect-video md:aspect-[21/9] lg:aspect-[16/9] min-h-[400px] sm:min-h-[500px] md:min-h-[600px] bg-background text-foreground overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 animate-pulse" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-red-900/20 via-transparent to-transparent" />
@@ -113,7 +113,7 @@ export default function HeroBannerSlider() {
   }
 
   return (
-    <div className="relative w-full aspect-video md:aspect-[21/9] lg:aspect-[21/9] min-h-[400px] sm:min-h-[500px] md:min-h-[600px] bg-black text-white overflow-hidden">
+    <div className="relative w-full aspect-video md:aspect-[21/9] lg:aspect-[21/9] min-h-[400px] sm:min-h-[500px] md:min-h-[600px] bg-background text-foreground overflow-hidden">
       <div className="absolute inset-0 block 2xl:hidden">
         <Swiper
           modules={[Autoplay]}
@@ -217,7 +217,7 @@ export default function HeroBannerSlider() {
           <motion.div variants={itemVariants}>
             <Link
               href={`/movies/${activeMovie.slug}`}
-              className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 px-3 sm:px-5 py-1.5 sm:py-3 rounded-lg font-semibold transition shadow-lg text-sm sm:text-base md:text-lg"
+              className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-3 sm:px-5 py-1.5 sm:py-3 rounded-lg font-semibold transition shadow-lg text-sm sm:text-base md:text-lg"
             >
               <Play className="w-4 h-4 sm:w-5 sm:h-5" /> Xem ngay
             </Link>

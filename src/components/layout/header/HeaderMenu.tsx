@@ -20,24 +20,24 @@ export default function HeaderMenu() {
   const { categories, countries } = useMenu();
 
   return (
-    <Menubar className="bg-transparent border-0 text-gray-200 space-x-6">
+    <Menubar className="space-x-1 border-0 bg-transparent p-0 shadow-none">
       <MenubarMenu>
-        <MenubarTrigger className="text-gray-200 hover:text-red-400 transition cursor-pointer text-lg font-semibold">
-          <Link href={`/`}>Trang chủ</Link>
+        <MenubarTrigger className="nav-link cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold data-[state=open]:bg-accent data-[state=open]:text-accent-foreground">
+          <Link href="/">Trang chủ</Link>
         </MenubarTrigger>
       </MenubarMenu>
 
       <MenubarMenu>
-        <MenubarTrigger className="text-gray-200 hover:text-red-400 transition cursor-pointer text-lg font-semibold">
+        <MenubarTrigger className="nav-link cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold data-[state=open]:bg-accent data-[state=open]:text-accent-foreground">
           Thể loại
         </MenubarTrigger>
-        <MenubarContent className="bg-gray-900 text-gray-200 p-4 rounded-lg w-[600px]">
-          <div className="grid grid-cols-4 gap-2">
+        <MenubarContent className="w-[min(600px,90vw)] rounded-xl border-border/60 p-4 shadow-xl">
+          <div className="grid grid-cols-2 gap-1 sm:grid-cols-4">
             {categories.map((cat) => (
               <MenubarItem key={String(cat.id)} asChild>
                 <Link
                   href={`/categories/${cat.slug}`}
-                  className="px-3 py-2 text-sm rounded-md hover:bg-gray-800 hover:text-red-400 transition cursor-pointer justify-center"
+                  className="cursor-pointer justify-center rounded-lg px-3 py-2 text-sm transition hover:bg-accent hover:text-accent-foreground"
                 >
                   {cat.name}
                 </Link>
@@ -48,16 +48,16 @@ export default function HeaderMenu() {
       </MenubarMenu>
 
       <MenubarMenu>
-        <MenubarTrigger className="text-gray-200 hover:text-red-400 transition cursor-pointer text-lg font-semibold">
+        <MenubarTrigger className="nav-link cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold data-[state=open]:bg-accent data-[state=open]:text-accent-foreground">
           Quốc gia
         </MenubarTrigger>
-        <MenubarContent className="bg-gray-900 text-gray-200 p-4 rounded-lg w-[600px]">
-          <div className="grid grid-cols-4 gap-2">
+        <MenubarContent className="w-[min(600px,90vw)] rounded-xl border-border/60 p-4 shadow-xl">
+          <div className="grid grid-cols-2 gap-1 sm:grid-cols-4">
             {countries.map((c) => (
               <MenubarItem key={c.id} asChild>
                 <Link
                   href={`/countries/${c.slug}`}
-                  className="px-3 py-2 text-sm rounded-md hover:bg-gray-800 hover:text-red-400 transition cursor-pointer justify-center"
+                  className="cursor-pointer justify-center rounded-lg px-3 py-2 text-sm transition hover:bg-accent hover:text-accent-foreground"
                 >
                   {c.name}
                 </Link>
@@ -68,22 +68,20 @@ export default function HeaderMenu() {
       </MenubarMenu>
 
       <MenubarMenu>
-        <MenubarTrigger className="text-gray-200 hover:text-red-400 transition cursor-pointer text-lg font-semibold">
+        <MenubarTrigger className="nav-link cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold data-[state=open]:bg-accent data-[state=open]:text-accent-foreground">
           Phim
         </MenubarTrigger>
-        <MenubarContent className="bg-gray-900 text-gray-200 p-4 rounded-lg w-[160px]">
-          <div className="grid grid-cols-1 gap-2">
-            {types.map((t, index) => (
-              <MenubarItem key={index} asChild>
-                <Link
-                  href={`/types/${t.slug}`}
-                  className="px-3 py-2 text-sm rounded-md hover:bg-gray-800 hover:text-red-400 transition cursor-pointer"
-                >
-                  {t.title}
-                </Link>
-              </MenubarItem>
-            ))}
-          </div>
+        <MenubarContent className="w-44 rounded-xl border-border/60 p-2 shadow-xl">
+          {types.map((t) => (
+            <MenubarItem key={t.slug} asChild>
+              <Link
+                href={`/types/${t.slug}`}
+                className="cursor-pointer rounded-lg px-3 py-2 text-sm transition hover:bg-accent hover:text-accent-foreground"
+              >
+                {t.title}
+              </Link>
+            </MenubarItem>
+          ))}
         </MenubarContent>
       </MenubarMenu>
     </Menubar>
