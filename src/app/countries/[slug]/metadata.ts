@@ -38,15 +38,21 @@ export async function generateCountryMetadata({
   const pretty = prettySlug(slug);
 
   let data: Record<string, unknown> = {};
-  let errored = false;
   try {
     const res = await apiGet<{ data?: Record<string, unknown> }>(
       `/quoc-gia/${encodeURIComponent(slug)}?${q.toString()}`,
       { baseKey: "phim_v1" }
     );
     data = res?.data ?? {};
-  } catch {
-    errored = true;
+  } catch (err) {
+    console.error("[countries] generateMetadata:", err);
+    const title =
+      page > 1 ? `Quốc gia: ${pretty} - Trang ${page}` : `Quốc gia: ${pretty}`;
+    return buildPageMetadata({
+      title,
+      description: `Xem phim ${pretty} online miễn phí, chất lượng HD, cập nhật nhanh.`,
+      canonical,
+    });
   }
 
   const seo = (data.seoOnPage ?? {}) as Record<string, unknown>;
@@ -83,13 +89,12 @@ export async function generateCountryMetadata({
     canonical,
     images,
     absoluteTitle: shouldUseAbsoluteTitle(seo, titlePage),
-    robots:
-      noItems || errored
-        ? {
-            index: false,
-            follow: true,
-            googleBot: { index: false, follow: true },
-          }
-        : { index: true, follow: true },
+    robots: noItems
+      ? {
+          index: false,
+          follow: true,
+          googleBot: { index: false, follow: true },
+        }
+      : { index: true, follow: true },
   });
 }

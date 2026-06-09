@@ -88,7 +88,8 @@ export async function generateTypeMetadata({
     .slice(0, 3);
 
   const titlePage = payload.titlePage as string | undefined;
-  const listItems = payload.items as unknown[] | undefined;
+  const data = payload.data as Record<string, unknown> | undefined;
+  const listItems = (payload.items ?? data?.items) as unknown[] | undefined;
   const noItems = !Array.isArray(listItems) || listItems.length === 0;
 
   return buildPageMetadata({

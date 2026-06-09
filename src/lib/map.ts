@@ -87,11 +87,19 @@ function extractTotalPages(payload: unknown): number | undefined {
   return typeof total === "number" ? total : undefined;
 }
 
+export async function getSitemapTotalPages(): Promise<number> {
+  const payload = await getNewest(1);
+  return extractTotalPages(payload) ?? 1;
+}
+
 /** Lấy slug phim từ PhimAPI cho sitemap (không dùng /api/movies nội bộ). */
-export async function getSitemapMovies(maxPages = 20): Promise<SitemapMovie[]> {
+export async function getSitemapMovies(
+  maxPages = 20,
+  startPage = 1
+): Promise<SitemapMovie[]> {
   const bySlug = new Map<string, SitemapMovie>();
 
-  for (let page = 1; page <= maxPages; page++) {
+  for (let page = startPage; page <= maxPages; page++) {
     let payload: unknown;
     try {
       payload = await getNewest(page);

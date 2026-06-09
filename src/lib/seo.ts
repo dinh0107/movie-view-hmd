@@ -89,6 +89,13 @@ export type PageSeoInput = {
   openGraphType?: "website" | "video.movie" | "video.episode";
 };
 
+/** Canonical tuyệt đối — dùng cho JSON-LD / sitemap khi cần URL đầy đủ */
+export function toAbsoluteUrl(path: string, siteUrl: string): string {
+  if (/^https?:\/\//i.test(path)) return path;
+  const base = siteUrl.replace(/\/+$/, "");
+  return `${base}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
 export function buildPageMetadata(input: PageSeoInput): Metadata {
   const {
     title,
