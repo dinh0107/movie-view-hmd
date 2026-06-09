@@ -6,8 +6,14 @@ function withSecurity(res: NextResponse) {
   return applySecurityHeaders(res) as NextResponse;
 }
 
+const SEO_PATHS = /^\/(sitemap\.xml|robots\.txt|sitemap\/.*\.xml)$/;
+
 export function middleware(req: NextRequest) {
   const u = new URL(req.url);
+
+  if (SEO_PATHS.test(u.pathname)) {
+    return withSecurity(NextResponse.next());
+  }
 
   if (!u.pathname.startsWith("/types/") && !u.pathname.startsWith("/watch/")) {
     return withSecurity(NextResponse.next());
