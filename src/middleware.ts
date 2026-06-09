@@ -19,7 +19,7 @@ export function middleware(req: NextRequest) {
     return withSecurity(NextResponse.next());
   }
 
-  const WHITELIST = new Set(["category", "country", "year", "ep"]);
+  const WHITELIST = new Set(["category", "country", "year", "ep", "server"]);
 
   ["utm_source", "utm_medium", "utm_campaign", "gclid", "fbclid", "ref", "ref_src"].forEach(
     (k) => u.searchParams.delete(k)

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { movieDetailService } from "@/services/apiService";
 import { VideoPlayer } from "@/components/player/VideoPlayer";
 import type {
@@ -18,7 +18,6 @@ type WatchPageProps = {
 
 export default function WatchPage({ slug, initialDetail }: WatchPageProps) {
   const search = useSearchParams();
-  const router = useRouter();
   const skipInitialFetch = useRef(Boolean(initialDetail));
 
   const HISTORY_KEY = slug ? `watch:${slug}` : "";
@@ -103,12 +102,20 @@ export default function WatchPage({ slug, initialDetail }: WatchPageProps) {
   }, [detail, serverIdx, epIdx]);
 
   useEffect(() => {
-    if (!slug) return;
-    const params = new URLSearchParams();
-    params.set("server", String(serverIdx));
-    params.set("ep", String(epIdx));
-    router.replace(`/watch/${slug}?${params.toString()}`);
-  }, [slug, serverIdx, epIdx, router]);
+    if (!slug || typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    const nextServer = String(serverIdx);
+    const nextEp = String(epIdx);
+    if (
+      url.searchParams.get("server") === nextServer &&
+      url.searchParams.get("ep") === nextEp
+    ) {
+      return;
+    }
+    url.searchParams.set("server", nextServer);
+    url.searchParams.set("ep", nextEp);
+    window.history.replaceState(null, "", url.toString());
+  }, [slug, serverIdx, epIdx]);
 
   useEffect(() => {
     if (!HISTORY_KEY) return;
