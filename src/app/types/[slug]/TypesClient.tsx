@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
-import { useParams } from "next/navigation";
 import { apiGet } from "@/services/axiosClient";
+import type { ListMovie, MovieListResult } from "@/lib/movie-list-types";
 import { Loader2, X } from "lucide-react";
 import { useMenu } from "@/context/MenuContext";
 
@@ -24,15 +24,41 @@ import {
 } from "@/components/ui/pagination";
 import { getListTitle, pickBaseKey, sanitizeSlug } from "@/lib/utils";
 
-type ApiMovie = {
-  id: string;
-  name: string;
-  slug: string;
-  poster_url: string;
-  thumb_url: string;
-  year: number;
-  episode_current: string;
+const SLUG_MAP: Record<string, string> = {
+  "phim-moi-cap-nhat": "Phim mới cập nhật",
+  "phim-le": "Phim lẻ",
+  "phim-bo": "Phim bộ",
+  "hoat-hinh": "Hoạt hình",
+  "tv-shows": "TV Shows",
 };
+
+function toPretty(s: string) {
+  return s
+    .replace(/^\/+|\/+$/g, "")
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function normalizeImg(p?: string) {
+  if (!p) return "";
+  if (/^https?:\/\//i.test(p)) return p;
+  return `https://phimimg.com/${p.replace(/^\/+/, "")}`;
+}
+
+function mapItems(items: unknown[]): ListMovie[] {
+  return items.map((raw) => {
+    const item = raw as Record<string, unknown>;
+    return {
+      id: String(item._id ?? item.id ?? item.slug ?? ""),
+      name: String(item.name ?? ""),
+      slug: String(item.slug ?? ""),
+      poster_url: normalizeImg(item.poster_url as string | undefined),
+      thumb_url: normalizeImg(item.thumb_url as string | undefined),
+      year: Number(item.year) || 0,
+      episode_current: String(item.episode_current ?? ""),
+    };
+  });
+}
 
 function Breadcrumb({ title }: { title: string }) {
   return (
@@ -46,7 +72,7 @@ function Breadcrumb({ title }: { title: string }) {
   );
 }
 
-function MovieCard({ movie }: { movie: ApiMovie }) {
+function MovieCard({ movie }: { movie: ListMovie }) {
   const poster = movie.poster_url || movie.thumb_url;
   return (
     <article className="group relative overflow-hidden rounded-2xl bg-white/5 ring-1 ring-white/10 shadow-lg min-h-[150px] aspect-[2/3]">
@@ -95,16 +121,21 @@ function MovieCard({ movie }: { movie: ApiMovie }) {
   );
 }
 
-export default function MoviesPage() {
-  const params = useParams<{ slug: string }>();
-  const slug = Array.isArray(params?.slug) ? params.slug[0] : params?.slug;
+export default function MoviesPage({
+  slug,
+  initialData,
+}: {
+  slug: string;
+  initialData: MovieListResult;
+}) {
+  const skipInitialFetch = React.useRef(true);
 
-  const [movies, setMovies] = React.useState<ApiMovie[]>([]);
-  const [page, setPage] = React.useState(1);
-  const [totalPages, setTotalPages] = React.useState(1);
+  const [movies, setMovies] = React.useState<ListMovie[]>(initialData.movies);
+  const [page, setPage] = React.useState(initialData.page);
+  const [totalPages, setTotalPages] = React.useState(initialData.totalPages);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [categoryTitle, setCategoryTitle] = React.useState("Movies");
+  const [categoryTitle, setCategoryTitle] = React.useState(initialData.title);
 
   // bộ lọc
   const [category, setCategory] = React.useState("");
@@ -114,17 +145,29 @@ export default function MoviesPage() {
 
   const { categories, countries } = useMenu();
 
-  // reset khi đổi slug hoặc filter
+  React.useEffect(() => {
+    setMovies(initialData.movies);
+    setPage(initialData.page);
+    setTotalPages(initialData.totalPages);
+    setCategoryTitle(initialData.title);
+    setError(null);
+    skipInitialFetch.current = true;
+  }, [initialData, slug]);
+
   React.useEffect(() => {
     setMovies([]);
     setPage(1);
     setError(null);
-  }, [slug, category, country, lang, year]);
+  }, [category, country, lang, year]);
 
   React.useEffect(() => {
     if (!slug) return;
 
-    const ac = new AbortController();
+    if (skipInitialFetch.current) {
+      skipInitialFetch.current = false;
+      return;
+    }
+
     let mounted = true;
 
     const run = async () => {
@@ -171,17 +214,7 @@ export default function MoviesPage() {
 
         const items: any[] = Array.isArray(data?.items) ? data.items : [];
 
-        setMovies(
-          items.map((item: any) => ({
-            id: item._id || item.id,
-            name: item.name,
-            slug: item.slug,
-            poster_url: item.poster_url ? normalizeImg(item.poster_url) : "",
-            thumb_url: item.thumb_url ? normalizeImg(item.thumb_url) : "",
-            year: Number(item.year) || 0,
-            episode_current: String(item.episode_current ?? ""),
-          }))
-        );
+        setMovies(mapItems(items));
       } catch (e: any) {
         if (!mounted) return;
         setError(e?.message ?? "Load thất bại");
@@ -191,33 +224,12 @@ export default function MoviesPage() {
       }
     };
 
-    const normalizeImg = (p?: string) => {
-      if (!p) return "";
-      if (/^https?:\/\//i.test(p)) return p;
-      const clean = p.replace(/^\/+/, "");
-      return `https://phimimg.com/${clean}`;
-    };
-
     run();
 
     return () => {
       mounted = false;
-      ac.abort();
     };
   }, [slug, page, category, country, lang, year]);
-  const SLUG_MAP: Record<string, string> = {
-    "phim-moi-cap-nhat": "Phim mới cập nhật",
-    "phim-le": "Phim lẻ",
-    "phim-bo": "Phim bộ",
-    "hoat-hinh": "Hoạt hình",
-    "tv-shows": "TV Shows",
-  };
-
-  const toPretty = (s: string) =>
-    s
-      .replace(/^\/+|\/+$/g, "")
-      .replace(/-/g, " ")
-      .replace(/\b\w/g, (c) => c.toUpperCase());
 
   const displayTitle = categoryTitle ?? SLUG_MAP[slug] ?? toPretty(slug);
 
