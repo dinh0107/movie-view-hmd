@@ -1,5 +1,7 @@
 import "server-only";
+import { normalizeMovieDetailBody } from "@/lib/movie-detail-normalize";
 import { cleanSeoText, toAbsoluteImage } from "@/lib/seo";
+import type { MovieDetail } from "@/services/apiService";
 
 const BASE = process.env.PHIMAPI_BASE ?? "https://phimapi.com";
 
@@ -37,6 +39,31 @@ function parseMovieBody(
 }
 
 /** Fetch phim từ PhimAPI (server-only, có cache). Thử nhiều endpoint. */
+/** Fetch chi tiết phim đầy đủ (server-only, có cache) — dùng cho watch SSR. */
+export async function fetchMovieDetailServer(
+  slug: string,
+  revalidate = 600
+): Promise<MovieDetail | null> {
+  const safe = encodeURIComponent(slug.trim());
+  const urls = [
+    `${BASE}/phim/${safe}`,
+    `${BASE}/v1/api/phim/${safe}`,
+  ];
+
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, { next: { revalidate } });
+      if (!res.ok) continue;
+      const body = (await res.json()) as Record<string, unknown>;
+      const detail = normalizeMovieDetailBody(body, slug);
+      if (detail) return detail;
+    } catch {
+      // thử endpoint tiếp theo
+    }
+  }
+  return null;
+}
+
 export async function fetchMovieSeo(
   slug: string,
   revalidate = 600

@@ -1,17 +1,12 @@
 "use client";
-import React from "react";
-import { apiGet } from "@/services/axiosClient";
-import type { ListMovie, MovieListResult } from "@/lib/movie-list-types";
-import { Loader2, X } from "lucide-react";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+
+import { X } from "lucide-react";
+import { useMenu } from "@/context/MenuContext";
+import { useListUrl } from "@/hooks/useListUrl";
+import { MovieCard } from "@/components/movie/MovieCard";
+import { PageLoader } from "@/components/movie/PageLoader";
+import { MoviePagination } from "@/components/movie/MoviePagination";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -19,98 +14,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { useMenu } from "@/context/MenuContext";
-
-function mapItems(items: unknown[]): ListMovie[] {
-  return items.map((raw) => {
-    const item = raw as Record<string, unknown>;
-    const poster = item.poster_url as string | undefined;
-    const thumb = item.thumb_url as string | undefined;
-    return {
-      id: String(item._id ?? item.id ?? item.slug ?? ""),
-      name: String(item.name ?? ""),
-      slug: String(item.slug ?? ""),
-      poster_url: poster
-        ? /^https?:\/\//i.test(poster)
-          ? poster
-          : `https://phimimg.com/${poster.replace(/^\/+/, "")}`
-        : "",
-      thumb_url: thumb
-        ? /^https?:\/\//i.test(thumb)
-          ? thumb
-          : `https://phimimg.com/${thumb.replace(/^\/+/, "")}`
-        : "",
-      year: Number(item.year) || 0,
-      episode_current: String(item.episode_current ?? ""),
-    };
-  });
-}
+import type { MovieListResult } from "@/lib/movie-list-types";
 
 function Breadcrumb({ title }: { title: string }) {
   return (
-    <div className="border-b border-white/10 bg-gradient-to-b from-white/5 to-transparent">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
-        <h1 className="mt-2 text-2xl sm:text-3xl font-bold text-white">
-          {title}
-        </h1>
+    <div className="border-b border-border bg-gradient-to-b from-muted/50 to-transparent">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <h1 className="mt-2 text-2xl font-bold sm:text-3xl">{title}</h1>
       </div>
     </div>
-  );
-}
-
-function MovieCard({ movie }: { movie: ListMovie }) {
-  const poster = movie.poster_url || movie.thumb_url;
-  return (
-    <article className="group relative overflow-hidden rounded-2xl bg-white/5 ring-1 ring-white/10 shadow-lg  min-h-[150px] aspect-[2/3]">
-      <a
-        href={`/movies/${movie.slug}`}
-        className="aspect-[2/3] w-full overflow-hidden"
-      >
-        <img
-          src={poster}
-          alt={movie.name}
-          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-          loading="lazy"
-        />
-      </a>
-
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-80" />
-
-      <div className="absolute top-2 left-2 flex items-center gap-2 flex-1 sm:flex-none">
-        <span className="bg-black/60 text-white/80 text-xs px-2 py-0.5 rounded-md">
-          {movie.year || "—"}
-        </span>
-        {movie.episode_current && (
-          <span className="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-md shadow-md">
-            {movie.episode_current}
-          </span>
-        )}
-      </div>
-
-      <div className="absolute inset-x-0 bottom-0 p-4">
-        <h3 className="text-white font-semibold text-base line-clamp-4">
-          {movie.name}
-        </h3>
-        <div className="mt-3">
-          <a
-            href={`/movies/${movie.slug}`}
-            className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white shadow transition hover:bg-red-700"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="currentColor"
-              className="opacity-90"
-            >
-              <path d="M4 3l9 5-9 5V3z" />
-            </svg>
-            Xem ngay
-          </a>
-        </div>
-      </div>
-    </article>
   );
 }
 
@@ -121,234 +33,124 @@ export default function MoviesPage({
   slug: string;
   initialData: MovieListResult;
 }) {
-  const skipInitialFetch = React.useRef(true);
-
-  const [movies, setMovies] = React.useState<ListMovie[]>(initialData.movies);
-  const [page, setPage] = React.useState(initialData.page);
-  const [totalPages, setTotalPages] = React.useState(initialData.totalPages);
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-  const [countryTitle, setCountryTitle] = React.useState(initialData.title);
-
-  const [category, setCategory] = React.useState("");
-  const [lang, setLang] = React.useState("");
-  const [year, setYear] = React.useState("");
-
+  const { page, setPage, getParam, setFilter, isPending } = useListUrl();
   const { categories } = useMenu();
 
-  React.useEffect(() => {
-    setMovies(initialData.movies);
-    setPage(initialData.page);
-    setTotalPages(initialData.totalPages);
-    setCountryTitle(initialData.title);
-    setError(null);
-    skipInitialFetch.current = true;
-  }, [initialData, slug]);
+  const category = getParam("category");
+  const lang = getParam("sort_lang");
+  const year = getParam("year");
 
-  React.useEffect(() => {
-    setMovies([]);
-    setPage(1);
-    setError(null);
-  }, [category, lang, year]);
-
-  React.useEffect(() => {
-    if (!slug) return;
-
-    if (skipInitialFetch.current) {
-      skipInitialFetch.current = false;
-      return;
-    }
-
-    const run = async () => {
-      try {
-        setLoading(true);
-        const res = await apiGet<any>(
-          `/quoc-gia/${slug}?page=${page}&limit=15` +
-            (category ? `&category=${category}` : "") +
-            (lang ? `&sort_lang=${lang}` : "") +
-            (year ? `&year=${year}` : ""),
-          { baseKey: "phim_v1" }
-        );
-        const data = res?.data ?? {};
-
-        setCountryTitle(data.titlePage || slug);
-        setTotalPages(data?.params?.pagination?.totalPages || page);
-
-        const items = Array.isArray(data.items) ? data.items : [];
-        setMovies(mapItems(items));
-
-        const url = new URL(window.location.href);
-        url.searchParams.set("page", String(page));
-        window.history.replaceState({}, "", url.toString());
-      } catch (e: any) {
-        setError(e?.message ?? "Load thất bại");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    run();
-  }, [slug, page, category, lang, year]);
+  if (isPending) {
+    return <PageLoader />;
+  }
 
   return (
     <div className="page-shell pb-8">
-      <Breadcrumb title={slug ? `Quốc gia: ${countryTitle}` : "Movies"} />
+      <Breadcrumb
+        title={slug ? `Quốc gia: ${initialData.title}` : "Danh sách phim"}
+      />
 
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex flex-wrap gap-4 mb-6">
-          <div className="flex items-center gap-2 flex-1 sm:flex-none relative">
-            <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="sm:!w-[200px] !w-full bg-gray-900 text-white">
-                <SelectValue placeholder="Thể loại" />
-              </SelectTrigger>
-              <SelectContent className="bg-gray-900 text-white">
-                {categories.map((category) => (
-                  <SelectItem
-                    key={category?.slug ?? ""}
-                    value={category.slug ?? ""}
-                  >
-                    {category?.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mb-6 flex flex-wrap gap-4">
+          <FilterSelect
+            value={category}
+            placeholder="Thể loại"
+            onChange={(v) => setFilter("category", v)}
+            onClear={() => setFilter("category", "")}
+          >
+            {categories.map((item) => (
+              <SelectItem key={item.slug ?? item.name} value={item.slug ?? ""}>
+                {item.name}
+              </SelectItem>
+            ))}
+          </FilterSelect>
 
-            {category && (
-              <Button
-                variant="ghost"
-                className="text-red-500 cursor-pointer w-[18px] h-[18px] !p-0 right-2 rounded-full bg-white absolute top-1/2 transform -translate-y-1/2"
-                onClick={() => setCategory("")}
-              >
-                <X />
-              </Button>
+          <FilterSelect
+            value={lang}
+            placeholder="Phụ đề"
+            onChange={(v) => setFilter("sort_lang", v)}
+            onClear={() => setFilter("sort_lang", "")}
+          >
+            <SelectItem value="vietsub">Vietsub</SelectItem>
+            <SelectItem value="thuyet-minh">Thuyết minh</SelectItem>
+            <SelectItem value="long-tieng">Lồng tiếng</SelectItem>
+          </FilterSelect>
+
+          <FilterSelect
+            value={year}
+            placeholder="Năm phát hành"
+            onChange={(v) => setFilter("year", v)}
+            onClear={() => setFilter("year", "")}
+            contentClassName="max-h-60"
+          >
+            {Array.from({ length: 2025 - 1970 + 1 }, (_, i) => 2025 - i).map(
+              (y) => (
+                <SelectItem key={y} value={String(y)}>
+                  {y}
+                </SelectItem>
+              )
             )}
-          </div>
-
-          <div className="flex items-center gap-2 flex-1 sm:flex-none relative">
-            <Select value={lang} onValueChange={setLang}>
-              <SelectTrigger className="sm:!w-[200px] !w-full bg-gray-900 text-white">
-                <SelectValue placeholder="Phụ đề" />
-              </SelectTrigger>
-              <SelectContent className="bg-gray-900 text-white">
-                <SelectItem value="vietsub">Vietsub</SelectItem>
-                <SelectItem value="thuyet-minh">Thuyết minh</SelectItem>
-                <SelectItem value="long-tieng">Lồng tiếng</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {lang && (
-              <Button
-                variant="ghost"
-                className="text-red-500 cursor-pointer w-[18px] h-[18px] !p-0 right-2 rounded-full bg-white absolute top-1/2 transform -translate-y-1/2"
-                onClick={() => setLang("")}
-              >
-                <X />
-              </Button>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2 flex-1 sm:flex-none relative">
-            <Select value={year} onValueChange={setYear}>
-              <SelectTrigger className="sm:!w-[200px] !w-full bg-gray-900 text-white">
-                <SelectValue placeholder="Năm phát hành" />
-              </SelectTrigger>
-              <SelectContent className="bg-gray-900 text-white max-h-60 overflow-y-auto">
-                {Array.from(
-                  { length: 2025 - 1970 + 1 },
-                  (_, i) => 2025 - i
-                ).map((y) => (
-                  <SelectItem key={y} value={String(y)}>
-                    {y}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {year && (
-              <Button
-                variant="ghost"
-                className="text-red-500 cursor-pointer w-[18px] h-[18px] !p-0 right-2 rounded-full bg-white absolute top-1/2 transform -translate-y-1/2"
-                onClick={() => setYear("")}
-              >
-                <X />
-              </Button>
-            )}
-          </div>
+          </FilterSelect>
         </div>
 
-        {/* Movies */}
-        {error && <div className="mb-4 text-sm text-red-300">{error}</div>}
-        {loading && movies.length === 0 && (
-          <main className="min-h-screen grid place-items-center text-white">
-            <Loader2 className="h-10 w-10 animate-spin text-red-500" />
-          </main>
-        )}
         <section>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
-            {movies.map((m) => (
-              <MovieCard key={m.id} movie={m} />
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4 xl:grid-cols-5">
+            {initialData.movies.map((m) => (
+              <MovieCard key={`${m.id}-${m.slug}`} movie={m} />
             ))}
           </div>
 
-          {!loading && movies.length === 0 && !error && (
-            <div className="py-20 text-center text-white/70">
+          {initialData.movies.length === 0 && (
+            <div className="py-20 text-center text-muted-foreground">
               Không có phim.
             </div>
           )}
 
-          {/* Pagination */}
-          {movies.length > 0 && (
-            <div className="mt-10 flex justify-center">
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious
-                      href="#"
-                      onClick={() => setPage((p) => Math.max(1, p - 1))}
-                      className="text-red-500 hover:bg-red-600 hover:text-white"
-                    />
-                  </PaginationItem>
-
-                  {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .slice(0, 5)
-                    .map((p) => (
-                      <PaginationItem key={p}>
-                        <PaginationLink
-                          href="#"
-                          onClick={() => setPage(p)}
-                          isActive={p === page}
-                          className={
-                            p === page
-                              ? "bg-red-600 text-white border-none"
-                              : "text-red-500 hover:bg-red-600 hover:text-white"
-                          }
-                        >
-                          {p}
-                        </PaginationLink>
-                      </PaginationItem>
-                    ))}
-
-                  {totalPages > 5 && (
-                    <PaginationItem>
-                      <PaginationEllipsis />
-                    </PaginationItem>
-                  )}
-
-                  <PaginationItem>
-                    <PaginationNext
-                      href="#"
-                      onClick={() =>
-                        setPage((p) => Math.min(totalPages, p + 1))
-                      }
-                      className="text-red-500 hover:bg-red-600 hover:text-white"
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </div>
-          )}
+          <MoviePagination
+            page={page}
+            totalPages={initialData.totalPages}
+            onPageChange={setPage}
+          />
         </section>
       </main>
+    </div>
+  );
+}
+
+function FilterSelect({
+  value,
+  placeholder,
+  onChange,
+  onClear,
+  children,
+  contentClassName,
+}: {
+  value: string;
+  placeholder: string;
+  onChange: (v: string) => void;
+  onClear: () => void;
+  children: React.ReactNode;
+  contentClassName?: string;
+}) {
+  return (
+    <div className="relative flex-1 sm:flex-none">
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger className="w-full bg-gray-900 text-white sm:w-[200px]">
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent className={`bg-gray-900 text-white ${contentClassName ?? ""}`}>
+          {children}
+        </SelectContent>
+      </Select>
+      {value ? (
+        <Button
+          variant="ghost"
+          className="absolute right-2 top-1/2 size-[18px] -translate-y-1/2 rounded-full bg-white p-0 text-red-500"
+          onClick={onClear}
+        >
+          <X className="size-3" />
+        </Button>
+      ) : null}
     </div>
   );
 }

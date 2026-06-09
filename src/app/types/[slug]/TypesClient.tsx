@@ -1,10 +1,12 @@
 "use client";
-import React from "react";
-import { apiGet } from "@/services/axiosClient";
-import type { ListMovie, MovieListResult } from "@/lib/movie-list-types";
-import { Loader2, X } from "lucide-react";
-import { useMenu } from "@/context/MenuContext";
 
+import { X } from "lucide-react";
+import { useMenu } from "@/context/MenuContext";
+import { useListUrl } from "@/hooks/useListUrl";
+import { MovieCard } from "@/components/movie/MovieCard";
+import { PageLoader } from "@/components/movie/PageLoader";
+import { MoviePagination } from "@/components/movie/MoviePagination";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -12,17 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import { getListTitle, pickBaseKey, sanitizeSlug } from "@/lib/utils";
+import type { MovieListResult } from "@/lib/movie-list-types";
 
 const SLUG_MAP: Record<string, string> = {
   "phim-moi-cap-nhat": "Phim mới cập nhật",
@@ -32,92 +24,13 @@ const SLUG_MAP: Record<string, string> = {
   "tv-shows": "TV Shows",
 };
 
-function toPretty(s: string) {
-  return s
-    .replace(/^\/+|\/+$/g, "")
-    .replace(/-/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-function normalizeImg(p?: string) {
-  if (!p) return "";
-  if (/^https?:\/\//i.test(p)) return p;
-  return `https://phimimg.com/${p.replace(/^\/+/, "")}`;
-}
-
-function mapItems(items: unknown[]): ListMovie[] {
-  return items.map((raw) => {
-    const item = raw as Record<string, unknown>;
-    return {
-      id: String(item._id ?? item.id ?? item.slug ?? ""),
-      name: String(item.name ?? ""),
-      slug: String(item.slug ?? ""),
-      poster_url: normalizeImg(item.poster_url as string | undefined),
-      thumb_url: normalizeImg(item.thumb_url as string | undefined),
-      year: Number(item.year) || 0,
-      episode_current: String(item.episode_current ?? ""),
-    };
-  });
-}
-
 function Breadcrumb({ title }: { title: string }) {
   return (
-    <div className="border-b border-white/10 bg-gradient-to-b from-white/5 to-transparent">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
-        <h1 className="mt-2 text-2xl sm:text-3xl font-bold text-white">
-          {title}
-        </h1>
+    <div className="border-b border-border bg-gradient-to-b from-muted/50 to-transparent">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <h1 className="mt-2 text-2xl font-bold sm:text-3xl">{title}</h1>
       </div>
     </div>
-  );
-}
-
-function MovieCard({ movie }: { movie: ListMovie }) {
-  const poster = movie.poster_url || movie.thumb_url;
-  return (
-    <article className="group relative overflow-hidden rounded-2xl bg-white/5 ring-1 ring-white/10 shadow-lg min-h-[150px] aspect-[2/3]">
-      <a
-        href={`/movies/${movie.slug}`}
-        className="aspect-[2/3] w-full overflow-hidden"
-      >
-        <img
-          src={poster}
-          alt={movie.name}
-          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-          loading="lazy"
-        />
-      </a>
-
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-80" />
-
-      <div className="absolute top-2 left-2 flex items-center gap-2">
-        <span className="bg-black/60 text-white/80 text-xs px-2 py-0.5 rounded-md">
-          {movie.year || "—"}
-        </span>
-        {movie.episode_current && (
-          <span className="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-md shadow-md">
-            {movie.episode_current}
-          </span>
-        )}
-      </div>
-
-      <div className="absolute inset-x-0 bottom-0 p-4">
-        <h3 className="text-white font-semibold text-base line-clamp-2">
-          {movie.name}
-        </h3>
-        <div className="mt-3">
-          <a
-            href={`/movies/${movie.slug}`}
-            className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white shadow transition hover:bg-red-700"
-          >
-            <svg width="16" height="16" fill="currentColor">
-              <path d="M4 3l9 5-9 5V3z" />
-            </svg>
-            Xem ngay
-          </a>
-        </div>
-      </div>
-    </article>
   );
 }
 
@@ -128,297 +41,141 @@ export default function MoviesPage({
   slug: string;
   initialData: MovieListResult;
 }) {
-  const skipInitialFetch = React.useRef(true);
-
-  const [movies, setMovies] = React.useState<ListMovie[]>(initialData.movies);
-  const [page, setPage] = React.useState(initialData.page);
-  const [totalPages, setTotalPages] = React.useState(initialData.totalPages);
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-  const [categoryTitle, setCategoryTitle] = React.useState(initialData.title);
-
-  // bộ lọc
-  const [category, setCategory] = React.useState("");
-  const [country, setCountry] = React.useState("");
-  const [lang, setLang] = React.useState("");
-  const [year, setYear] = React.useState("");
-
+  const { page, setPage, getParam, setFilter, isPending } = useListUrl();
   const { categories, countries } = useMenu();
 
-  React.useEffect(() => {
-    setMovies(initialData.movies);
-    setPage(initialData.page);
-    setTotalPages(initialData.totalPages);
-    setCategoryTitle(initialData.title);
-    setError(null);
-    skipInitialFetch.current = true;
-  }, [initialData, slug]);
+  const category = getParam("category");
+  const country = getParam("country");
+  const lang = getParam("sort_lang");
+  const year = getParam("year");
 
-  React.useEffect(() => {
-    setMovies([]);
-    setPage(1);
-    setError(null);
-  }, [category, country, lang, year]);
+  const displayTitle =
+    initialData.title || SLUG_MAP[slug] || slug.replace(/-/g, " ");
 
-  React.useEffect(() => {
-    if (!slug) return;
-
-    if (skipInitialFetch.current) {
-      skipInitialFetch.current = false;
-      return;
-    }
-
-    let mounted = true;
-
-    const run = async () => {
-      try {
-        setError(null);
-        setLoading(true);
-
-        const raw = slug ?? "";
-        const cleanSlug = sanitizeSlug(raw);
-        const baseKey = pickBaseKey(cleanSlug);
-
-        const params = new URLSearchParams({
-          page: String(page),
-          limit: "15",
-        });
-
-        if (category) params.set("category", category);
-        if (country) params.set("country", country);
-        if (lang) params.set("sort_lang", lang);
-        if (year) params.set("year", String(year));
-
-        const url = `/danh-sach/${encodeURIComponent(
-          cleanSlug
-        )}?${params.toString()}`;
-
-        const res = await apiGet<any>(url, {
-          baseKey,
-          fallbackBases: baseKey === "phim_v1" ? ["phim_root"] : undefined,
-        });
-
-        const data = baseKey === "phim_root" ? res ?? {} : res?.data ?? {};
-
-        if (!mounted) return;
-
-        setCategoryTitle(
-          data?.titlePage ?? SLUG_MAP[cleanSlug] ?? toPretty(cleanSlug)
-        );
-
-        const total =
-          data?.params?.pagination?.totalPages ??
-          data?.pagination?.totalPages ??
-          1;
-        setTotalPages(Number(total) > 0 ? Number(total) : 1);
-
-        const items: any[] = Array.isArray(data?.items) ? data.items : [];
-
-        setMovies(mapItems(items));
-      } catch (e: any) {
-        if (!mounted) return;
-        setError(e?.message ?? "Load thất bại");
-      } finally {
-        if (!mounted) return;
-        setLoading(false);
-      }
-    };
-
-    run();
-
-    return () => {
-      mounted = false;
-    };
-  }, [slug, page, category, country, lang, year]);
-
-  const displayTitle = categoryTitle ?? SLUG_MAP[slug] ?? toPretty(slug);
+  if (isPending) {
+    return <PageLoader />;
+  }
 
   return (
     <div className="page-shell pb-8">
-      <Breadcrumb title={slug ? `Danh sách: ${displayTitle}` : "Movies"} />
+      <Breadcrumb title={slug ? `Danh sách: ${displayTitle}` : "Danh sách phim"} />
 
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
-        {/* Filter bar */}
-        <div className="grid grid-cols-2 gap-4 sm:flex sm:flex-wrap sm:gap-4 mb-6">
-          {/* Category */}
-          <div className="relative col-span-1">
-            <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="w-full sm:w-[200px] bg-gray-900 text-white">
-                <SelectValue placeholder="Thể loại" />
-              </SelectTrigger>
-              <SelectContent className="bg-gray-900 text-white">
-                {categories.map((c, idx) => (
-                  <SelectItem key={idx} value={c.slug ?? ""}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {category && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-1/2 -translate-y-1/2 right-2 text-red-500 bg-white rounded-full w-5 h-5"
-                onClick={() => setCategory("")}
-              >
-                <X className="w-3 h-3" />
-              </Button>
-            )}
-          </div>
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mb-6 grid grid-cols-2 gap-4 sm:flex sm:flex-wrap">
+          <FilterSelect
+            value={category}
+            placeholder="Thể loại"
+            onChange={(v) => setFilter("category", v)}
+            onClear={() => setFilter("category", "")}
+          >
+            {categories.map((c) => (
+              <SelectItem key={c.slug ?? c.name} value={c.slug ?? ""}>
+                {c.name}
+              </SelectItem>
+            ))}
+          </FilterSelect>
 
-          {/* Country */}
-          <div className="relative col-span-1">
-            <Select value={country} onValueChange={setCountry}>
-              <SelectTrigger className="w-full sm:w-[200px] bg-gray-900 text-white">
-                <SelectValue placeholder="Quốc gia" />
-              </SelectTrigger>
-              <SelectContent className="bg-gray-900 text-white max-h-60 overflow-y-auto">
-                {countries.map((c, idx) => (
-                  <SelectItem key={idx} value={c.slug ?? ""}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {country && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-1/2 -translate-y-1/2 right-2 text-red-500 bg-white rounded-full w-5 h-5"
-                onClick={() => setCountry("")}
-              >
-                <X className="w-3 h-3" />
-              </Button>
-            )}
-          </div>
+          <FilterSelect
+            value={country}
+            placeholder="Quốc gia"
+            onChange={(v) => setFilter("country", v)}
+            onClear={() => setFilter("country", "")}
+            contentClassName="max-h-60"
+          >
+            {countries.map((c) => (
+              <SelectItem key={c.slug ?? c.name} value={c.slug ?? ""}>
+                {c.name}
+              </SelectItem>
+            ))}
+          </FilterSelect>
 
-          {/* Subtitle / Language */}
-          <div className="relative col-span-1">
-            <Select value={lang} onValueChange={setLang}>
-              <SelectTrigger className="w-full sm:w-[200px] bg-gray-900 text-white">
-                <SelectValue placeholder="Phụ đề" />
-              </SelectTrigger>
-              <SelectContent className="bg-gray-900 text-white">
-                <SelectItem value="vietsub">Vietsub</SelectItem>
-                <SelectItem value="thuyet-minh">Thuyết minh</SelectItem>
-                <SelectItem value="long-tieng">Lồng tiếng</SelectItem>
-              </SelectContent>
-            </Select>
-            {lang && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-1/2 -translate-y-1/2 right-2 text-red-500 bg-white rounded-full w-5 h-5"
-                onClick={() => setLang("")}
-              >
-                <X className="w-3 h-3" />
-              </Button>
-            )}
-          </div>
+          <FilterSelect
+            value={lang}
+            placeholder="Phụ đề"
+            onChange={(v) => setFilter("sort_lang", v)}
+            onClear={() => setFilter("sort_lang", "")}
+          >
+            <SelectItem value="vietsub">Vietsub</SelectItem>
+            <SelectItem value="thuyet-minh">Thuyết minh</SelectItem>
+            <SelectItem value="long-tieng">Lồng tiếng</SelectItem>
+          </FilterSelect>
 
-          {/* Year */}
-          <div className="relative col-span-1">
-            <Select value={year} onValueChange={setYear}>
-              <SelectTrigger className="w-full sm:w-[200px] bg-gray-900 text-white">
-                <SelectValue placeholder="Năm phát hành" />
-              </SelectTrigger>
-              <SelectContent className="bg-gray-900 text-white max-h-60 overflow-y-auto">
-                {Array.from(
-                  { length: 2025 - 1970 + 1 },
-                  (_, i) => 2025 - i
-                ).map((y) => (
-                  <SelectItem key={y} value={String(y)}>
-                    {y}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {year && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-1/2 -translate-y-1/2 right-2 text-red-500 bg-white rounded-full w-5 h-5"
-                onClick={() => setYear("")}
-              >
-                <X className="w-3 h-3" />
-              </Button>
+          <FilterSelect
+            value={year}
+            placeholder="Năm phát hành"
+            onChange={(v) => setFilter("year", v)}
+            onClear={() => setFilter("year", "")}
+            contentClassName="max-h-60"
+          >
+            {Array.from({ length: 2025 - 1970 + 1 }, (_, i) => 2025 - i).map(
+              (y) => (
+                <SelectItem key={y} value={String(y)}>
+                  {y}
+                </SelectItem>
+              )
             )}
-          </div>
+          </FilterSelect>
         </div>
 
-        {/* Movies */}
-        {error && <div className="mb-4 text-sm text-red-300">{error}</div>}
-        {loading && movies.length === 0 && (
-          <div className="min-h-screen grid place-items-center text-white">
-            <Loader2 className="h-10 w-10 animate-spin text-red-500" />
-          </div>
-        )}
         <section>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
-            {movies.map((m) => (
-              <MovieCard key={m.id} movie={m} />
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4 xl:grid-cols-5">
+            {initialData.movies.map((m) => (
+              <MovieCard key={`${m.id}-${m.slug}`} movie={m} />
             ))}
           </div>
 
-          {!loading && movies.length === 0 && !error && (
-            <div className="py-20 text-center text-white/70">
+          {initialData.movies.length === 0 && (
+            <div className="py-20 text-center text-muted-foreground">
               Không có phim.
             </div>
           )}
 
-          {/* Pagination */}
-          {movies.length > 0 && (
-            <div className="mt-10 flex justify-center">
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious
-                      href="#"
-                      onClick={() => setPage((p) => Math.max(1, p - 1))}
-                      className="text-red-500 hover:bg-red-600 hover:text-white"
-                    />
-                  </PaginationItem>
-
-                  {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .slice(0, 5)
-                    .map((p) => (
-                      <PaginationItem key={p}>
-                        <PaginationLink
-                          href="#"
-                          onClick={() => setPage(p)}
-                          isActive={p === page}
-                          className={
-                            p === page
-                              ? "bg-red-600 text-white border-none"
-                              : "text-red-500 hover:bg-red-600 hover:text-white"
-                          }
-                        >
-                          {p}
-                        </PaginationLink>
-                      </PaginationItem>
-                    ))}
-
-                  {totalPages > 5 && (
-                    <PaginationItem>
-                      <PaginationEllipsis />
-                    </PaginationItem>
-                  )}
-
-                  <PaginationItem>
-                    <PaginationNext
-                      href="#"
-                      onClick={() =>
-                        setPage((p) => Math.min(totalPages, p + 1))
-                      }
-                      className="text-red-500 hover:bg-red-600 hover:text-white"
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </div>
-          )}
+          <MoviePagination
+            page={page}
+            totalPages={initialData.totalPages}
+            onPageChange={setPage}
+          />
         </section>
       </main>
+    </div>
+  );
+}
+
+function FilterSelect({
+  value,
+  placeholder,
+  onChange,
+  onClear,
+  children,
+  contentClassName,
+}: {
+  value: string;
+  placeholder: string;
+  onChange: (v: string) => void;
+  onClear: () => void;
+  children: React.ReactNode;
+  contentClassName?: string;
+}) {
+  return (
+    <div className="relative col-span-1">
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger className="w-full bg-gray-900 text-white sm:w-[200px]">
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent className={`bg-gray-900 text-white ${contentClassName ?? ""}`}>
+          {children}
+        </SelectContent>
+      </Select>
+      {value ? (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute right-2 top-1/2 size-5 -translate-y-1/2 rounded-full bg-white text-red-500"
+          onClick={onClear}
+        >
+          <X className="size-3" />
+        </Button>
+      ) : null}
     </div>
   );
 }

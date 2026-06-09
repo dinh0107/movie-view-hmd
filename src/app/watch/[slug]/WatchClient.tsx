@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useParams, useSearchParams, useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { movieDetailService } from "@/services/apiService";
 import { VideoPlayer } from "@/components/player/VideoPlayer";
 import type {
@@ -11,13 +11,18 @@ import type {
 } from "@/services/apiService";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 
-export default function WatchPage() {
-  const { slug } = useParams<{ slug: string }>();
+type WatchPageProps = {
+  slug: string;
+  initialDetail: MovieDetail | null;
+};
+
+export default function WatchPage({ slug, initialDetail }: WatchPageProps) {
   const search = useSearchParams();
   const router = useRouter();
+  const skipInitialFetch = useRef(Boolean(initialDetail));
 
   const HISTORY_KEY = slug ? `watch:${slug}` : "";
-  const parseIntSafe = (v: any, fallback = 0) => {
+  const parseIntSafe = (v: string | null, fallback = 0) => {
     const n = Number(v);
     return Number.isInteger(n) && n >= 0 ? n : fallback;
   };
@@ -32,7 +37,7 @@ export default function WatchPage() {
         const raw = localStorage.getItem(HISTORY_KEY);
         if (raw) {
           const saved = JSON.parse(raw) as { serverIdx: number; epIdx: number };
-          return parseIntSafe(saved.serverIdx, 0);
+          return parseIntSafe(String(saved.serverIdx), 0);
         }
       } catch {}
     }
@@ -46,19 +51,32 @@ export default function WatchPage() {
         const raw = localStorage.getItem(HISTORY_KEY);
         if (raw) {
           const saved = JSON.parse(raw) as { serverIdx: number; epIdx: number };
-          return parseIntSafe(saved.epIdx, 0);
+          return parseIntSafe(String(saved.epIdx), 0);
         }
       } catch {}
     }
     return 0;
   });
 
-  const [detail, setDetail] = useState<MovieDetail | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [detail, setDetail] = useState<MovieDetail | null>(initialDetail);
+  const [loading, setLoading] = useState(!initialDetail);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setDetail(initialDetail);
+    setLoading(!initialDetail);
+    setError(null);
+    skipInitialFetch.current = Boolean(initialDetail);
+  }, [initialDetail, slug]);
+
+  useEffect(() => {
     if (!slug) return;
+
+    if (skipInitialFetch.current) {
+      skipInitialFetch.current = false;
+      return;
+    }
+
     const controller = new AbortController();
     setLoading(true);
     setError(null);
@@ -67,9 +85,10 @@ export default function WatchPage() {
     movieDetailService
       .getMovieDetail(String(slug))
       .then((d) => setDetail(d))
-      .catch((e: any) => {
-        if (e?.name === "AbortError" || e?.code === "ERR_CANCELED") return;
-        setError(e?.message || "Fetch error");
+      .catch((e: unknown) => {
+        const err = e as { name?: string; code?: string; message?: string };
+        if (err?.name === "AbortError" || err?.code === "ERR_CANCELED") return;
+        setError(err?.message || "Fetch error");
       })
       .finally(() => setLoading(false));
 
@@ -142,14 +161,12 @@ export default function WatchPage() {
       <div className="container mx-auto px-4 py-4">
         <h1 className="text-xl md:text-2xl font-bold">
           {detail.name}{" "}
-          <span className="text-white/60">
+          <span className="text-muted-foreground">
             • {eps[epIdx]?.name || `Tập ${epIdx + 1}`}
           </span>
         </h1>
       </div>
-      {/* Controls */}
       <div className="container mx-auto px-4 mt-4 grid gap-4 md:grid-cols-[280px,1fr]">
-        {/* Servers */}
         <div className="rounded-2xl bg-white/5 p-3 ring-1 ring-white/10">
           <h3 className="font-semibold mb-2">Máy chủ</h3>
           <div className="flex flex-wrap gap-2">
@@ -169,12 +186,10 @@ export default function WatchPage() {
           </div>
         </div>
 
-        {/* Episodes */}
         <div className="rounded-2xl bg-white/5 p-3 ring-1 ring-white/10">
           <div className="mb-6 flex items-center justify-between">
             <h3 className="font-semibold">Danh sách tập</h3>
             <div className="flex items-center gap-2">
-              {/* nút tăng số lượng hiển thị */}
               <button
                 onClick={() => setVisible((v) => Math.min(eps.length, v + 40))}
                 disabled={visible >= eps.length}

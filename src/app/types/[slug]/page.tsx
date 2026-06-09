@@ -1,10 +1,12 @@
+import { Suspense } from "react";
 import TypesClient from "./TypesClient";
+import { PageLoader } from "@/components/movie/PageLoader";
 import { generateTypeMetadata } from "./metadata";
 import { MovieListSeo } from "@/components/seo/MovieListSeo";
 import { fetchTypeList } from "@/lib/movie-list-server";
 import { buildCanonicalPath, pickParam, type SearchParams } from "@/lib/seo";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata(
   props: Parameters<typeof generateTypeMetadata>[0]
@@ -32,7 +34,9 @@ export default async function Page({
         movies={initialData.movies}
         canonicalPath={canonicalPath}
       />
-      <TypesClient slug={slug} initialData={initialData} />
+      <Suspense fallback={<PageLoader />}>
+        <TypesClient slug={slug} initialData={initialData} />
+      </Suspense>
     </>
   );
 }

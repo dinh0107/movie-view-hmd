@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Artplayer from "artplayer";
 import Hls from "hls.js";
 import { Play } from "lucide-react";
 
@@ -12,6 +11,11 @@ type VideoPlayerProps = {
   poster?: string | null;
 };
 
+type ArtplayerInstance = {
+  destroy: (removeHtml?: boolean) => void;
+  on: (event: string, handler: () => void) => void;
+};
+
 export function VideoPlayer({
   m3u8,
   embed,
@@ -19,7 +23,7 @@ export function VideoPlayer({
   poster,
 }: VideoPlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const artRef = useRef<Artplayer | null>(null);
+  const artRef = useRef<ArtplayerInstance | null>(null);
   const [useEmbed, setUseEmbed] = useState(false);
 
   useEffect(() => {
@@ -30,91 +34,102 @@ export function VideoPlayer({
     if (useEmbed || !m3u8 || !containerRef.current) return;
 
     const container = containerRef.current;
-    const art = new Artplayer({
-      container,
-      url: m3u8,
-      type: "m3u8",
-      poster: poster || undefined,
-      autoplay: true,
-      autoSize: true,
-      autoMini: true,
-      fullscreen: true,
-      fullscreenWeb: true,
-      pip: true,
-      playbackRate: true,
-      setting: true,
-      flip: true,
-      theme: "#dc2626",
-      lang: navigator.language?.startsWith("vi") ? "vi" : "en",
-      moreVideoAttr: {
-        crossOrigin: "anonymous",
-        playsInline: true,
-      },
-      customType: {
-        m3u8(video, url, player) {
-          const onFatal = () => {
-            player.destroy(false);
-            if (embed) setUseEmbed(true);
-          };
+    let disposed = false;
 
-          if (Hls.isSupported()) {
-            const hls = new Hls({
-              maxBufferLength: 30,
-              enableWorker: true,
-              backBufferLength: 60,
-            });
-            hls.loadSource(url);
-            hls.attachMedia(video);
+    const setup = async () => {
+      const { default: Artplayer } = await import("artplayer");
+      if (disposed || !containerRef.current) return;
 
-            hls.on(Hls.Events.ERROR, (_, data) => {
-              if (!data.fatal) return;
-              switch (data.type) {
-                case Hls.ErrorTypes.NETWORK_ERROR:
-                  if (
-                    data.details === Hls.ErrorDetails.MANIFEST_LOAD_ERROR ||
-                    data.details === Hls.ErrorDetails.MANIFEST_LOAD_TIMEOUT ||
-                    data.details === Hls.ErrorDetails.LEVEL_LOAD_ERROR
-                  ) {
+      const art = new Artplayer({
+        container,
+        url: m3u8,
+        type: "m3u8",
+        poster: poster || undefined,
+        autoplay: true,
+        autoSize: true,
+        autoMini: true,
+        fullscreen: true,
+        fullscreenWeb: true,
+        pip: true,
+        playbackRate: true,
+        setting: true,
+        flip: true,
+        useSSR: true,
+        theme: "#dc2626",
+        lang: navigator.language?.startsWith("vi") ? "vi" : "en",
+        moreVideoAttr: {
+          crossOrigin: "anonymous",
+          playsInline: true,
+        },
+        customType: {
+          m3u8(video, url, player) {
+            const onFatal = () => {
+              player.destroy(false);
+              if (embed) setUseEmbed(true);
+            };
+
+            if (Hls.isSupported()) {
+              const hls = new Hls({
+                maxBufferLength: 30,
+                enableWorker: true,
+                backBufferLength: 60,
+              });
+              hls.loadSource(url);
+              hls.attachMedia(video);
+
+              hls.on(Hls.Events.ERROR, (_, data) => {
+                if (!data.fatal) return;
+                switch (data.type) {
+                  case Hls.ErrorTypes.NETWORK_ERROR:
+                    if (
+                      data.details === Hls.ErrorDetails.MANIFEST_LOAD_ERROR ||
+                      data.details === Hls.ErrorDetails.MANIFEST_LOAD_TIMEOUT ||
+                      data.details === Hls.ErrorDetails.LEVEL_LOAD_ERROR
+                    ) {
+                      hls.destroy();
+                      onFatal();
+                    } else {
+                      hls.startLoad();
+                    }
+                    break;
+                  case Hls.ErrorTypes.MEDIA_ERROR:
+                    hls.recoverMediaError();
+                    break;
+                  default:
                     hls.destroy();
                     onFatal();
-                  } else {
-                    hls.startLoad();
-                  }
-                  break;
-                case Hls.ErrorTypes.MEDIA_ERROR:
-                  hls.recoverMediaError();
-                  break;
-                default:
-                  hls.destroy();
-                  onFatal();
-                  break;
-              }
-            });
+                    break;
+                }
+              });
 
-            player.on("destroy", () => hls.destroy());
-          } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-            video.src = url;
-            video.addEventListener("error", onFatal, { once: true });
-          } else if (embed) {
-            onFatal();
-          }
+              player.on("destroy", () => hls.destroy());
+            } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+              video.src = url;
+              video.addEventListener("error", onFatal, { once: true });
+            } else if (embed) {
+              onFatal();
+            }
+          },
         },
-      },
-    });
+      });
 
-    art.on("video:error", () => {
-      if (embed) setUseEmbed(true);
-    });
+      art.on("video:error", () => {
+        if (embed) setUseEmbed(true);
+      });
 
-    artRef.current = art;
+      artRef.current = art;
+    };
+
+    void setup();
 
     return () => {
+      disposed = true;
       if (artRef.current) {
         artRef.current.destroy(false);
         artRef.current = null;
       }
     };
-  }, [m3u8, embed, title, poster, useEmbed]);
+  }, [m3u8, embed, poster, useEmbed]);
 
   if (useEmbed && embed) {
     return <EmbedPlayer url={embed} title={title} />;

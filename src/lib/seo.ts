@@ -103,7 +103,17 @@ export function buildPageMetadata(input: PageSeoInput): Metadata {
     canonical,
     images,
     absoluteTitle = false,
-    robots = { index: true, follow: true },
+    robots = {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
+      },
+    },
     openGraphType = "website",
   } = input;
 
