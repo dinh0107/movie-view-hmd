@@ -25,11 +25,11 @@ export const securityHeaders: { key: string; value: string }[] = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://www.highperformanceformat.com https://connect.facebook.net",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://www.highperformanceformat.com https://connect.facebook.net https://www.googletagmanager.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https: http:",
       "font-src 'self' data: https:",
-      "connect-src 'self' https://phimapi.com https://*.phimapi.com https://va.vercel-scripts.com https://vitals.vercel-insights.com https:",
+      "connect-src 'self' https://phimapi.com https://*.phimapi.com https://va.vercel-scripts.com https://vitals.vercel-insights.com https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https:",
       "frame-src 'self' https:",
       "media-src 'self' https: blob: data:",
       "object-src 'none'",

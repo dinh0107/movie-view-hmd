@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import HeaderLayout from "@/components/layout/header/HeaderLayout";
 import FooterLayout from "@/components/layout/footer/FooterLayout";
@@ -11,6 +12,8 @@ import { SITE_URL } from "@/lib/site";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+
+const GA_ID = "G-CVV3RVL1X1";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -89,6 +92,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <SpeedInsights />
           </MenuProvider>
         </ThemeProvider>
+        
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -105,6 +109,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             }),
           }}
         />
+
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_ID}');
+          `}
+        </Script>
       </body>
     </html>
   );
