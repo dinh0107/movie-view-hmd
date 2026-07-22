@@ -13,8 +13,8 @@ const TYPE_SLUGS = [
   "tv-shows",
 ];
 
-/** ~24 phim/trang × 50 trang ≈ 1200 phim (tránh timeout khi generate). */
-const MAX_MOVIE_PAGES = 50;
+/** ~24 phim/trang × 80 trang ≈ 1900+ phim (fetch song song, tránh timeout). */
+const MAX_MOVIE_PAGES = 80;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();

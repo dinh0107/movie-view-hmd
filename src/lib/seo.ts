@@ -79,6 +79,25 @@ export function buildCanonicalPath(
   return qs ? `${basePath}?${qs}` : basePath;
 }
 
+/** noindex,follow — trang phụ (watch, page>1, filter, list rỗng) */
+export const ROBOTS_NOINDEX_FOLLOW: Metadata["robots"] = {
+  index: false,
+  follow: true,
+  googleBot: { index: false, follow: true },
+};
+
+/** Index sạch chỉ khi trang 1 và không có filter. */
+export function shouldNoindexListPage(options: {
+  page?: number;
+  noItems?: boolean;
+  filters?: Array<string | undefined | null>;
+}): boolean {
+  if (options.noItems) return true;
+  if ((options.page ?? 1) > 1) return true;
+  if (options.filters?.some((v) => Boolean(v))) return true;
+  return false;
+}
+
 export type PageSeoInput = {
   title: string;
   description: string;

@@ -4,7 +4,7 @@ import { PageLoader } from "@/components/movie/PageLoader";
 import { generateTypeMetadata } from "./metadata";
 import { MovieListSeo } from "@/components/seo/MovieListSeo";
 import { fetchTypeList } from "@/lib/movie-list-server";
-import { buildCanonicalPath, pickParam, type SearchParams } from "@/lib/seo";
+import { buildCanonicalPath, type SearchParams } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -24,8 +24,7 @@ export default async function Page({
   const { slug } = await params;
   const sp = await searchParams;
   const initialData = await fetchTypeList(slug, sp);
-  const page = Number(pickParam(sp, "page") ?? 1) || 1;
-  const canonicalPath = buildCanonicalPath(`/types/${slug}`, { page });
+  const canonicalPath = buildCanonicalPath(`/types/${slug}`);
 
   return (
     <>

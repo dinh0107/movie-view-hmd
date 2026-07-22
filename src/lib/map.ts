@@ -92,37 +92,63 @@ export async function getSitemapTotalPages(): Promise<number> {
   return extractTotalPages(payload) ?? 1;
 }
 
-/** Lấy slug phim từ PhimAPI cho sitemap (không dùng /api/movies nội bộ). */
+/** Lấy slug phim từ PhimAPI cho sitemap (fetch song song theo batch). */
 export async function getSitemapMovies(
   maxPages = 20,
   startPage = 1
 ): Promise<SitemapMovie[]> {
   const bySlug = new Map<string, SitemapMovie>();
+  const concurrency = 5;
 
-  for (let page = startPage; page <= maxPages; page++) {
-    let payload: unknown;
-    try {
-      payload = await getNewest(page);
-    } catch {
-      break;
+  for (let page = startPage; page <= maxPages; page += concurrency) {
+    const batch = Array.from(
+      { length: Math.min(concurrency, maxPages - page + 1) },
+      (_, i) => page + i
+    );
+
+    const results = await Promise.all(
+      batch.map(async (p) => {
+        try {
+          return await getNewest(p);
+        } catch {
+          return null;
+        }
+      })
+    );
+
+    let reachedEnd = false;
+    for (let i = 0; i < results.length; i++) {
+      const payload = results[i];
+      if (!payload) {
+        reachedEnd = true;
+        break;
+      }
+
+      const items = extractListItems(payload);
+      if (!items.length) {
+        reachedEnd = true;
+        break;
+      }
+
+      for (const item of items) {
+        if (!item.slug) continue;
+        bySlug.set(item.slug, {
+          slug: item.slug,
+          updatedAt:
+            item.modified?.time ??
+            item.updatedAt ??
+            new Date().toISOString(),
+        });
+      }
+
+      const totalPages = extractTotalPages(payload);
+      if (totalPages !== undefined && batch[i] >= totalPages) {
+        reachedEnd = true;
+        break;
+      }
     }
 
-    const items = extractListItems(payload);
-    if (!items.length) break;
-
-    for (const item of items) {
-      if (!item.slug) continue;
-      bySlug.set(item.slug, {
-        slug: item.slug,
-        updatedAt:
-          item.modified?.time ??
-          item.updatedAt ??
-          new Date().toISOString(),
-      });
-    }
-
-    const totalPages = extractTotalPages(payload);
-    if (totalPages !== undefined && page >= totalPages) break;
+    if (reachedEnd) break;
   }
 
   return Array.from(bySlug.values());

@@ -5,6 +5,8 @@ import {
   buildPageMetadata,
   pickParam,
   prettySlug,
+  ROBOTS_NOINDEX_FOLLOW,
+  shouldNoindexListPage,
   shouldUseAbsoluteTitle,
   toAbsoluteImage,
   type SearchParams,
@@ -34,7 +36,8 @@ export async function generateCategoryMetadata({
   if (sortLang) q.set("sort_lang", sortLang);
   if (year) q.set("year", year);
 
-  const canonical = buildCanonicalPath(`/categories/${slug}`, { page });
+  // Canonical luôn về trang 1 không filter — tránh index URL phụ
+  const canonical = buildCanonicalPath(`/categories/${slug}`);
   const pretty = prettySlug(slug);
 
   let data: Record<string, unknown> = {};
@@ -52,6 +55,7 @@ export async function generateCategoryMetadata({
       title,
       description: `Xem phim ${pretty} online miễn phí, chất lượng HD, cập nhật nhanh.`,
       canonical,
+      robots: ROBOTS_NOINDEX_FOLLOW,
     });
   }
 
@@ -79,6 +83,11 @@ export async function generateCategoryMetadata({
 
   const titlePage = data.titlePage as string | undefined;
   const noItems = !items?.length;
+  const noindex = shouldNoindexListPage({
+    page,
+    noItems,
+    filters: [country, sortLang, year],
+  });
 
   return buildPageMetadata({
     title,
@@ -88,12 +97,6 @@ export async function generateCategoryMetadata({
     canonical,
     images,
     absoluteTitle: shouldUseAbsoluteTitle(seo, titlePage),
-    robots: noItems
-      ? {
-          index: false,
-          follow: true,
-          googleBot: { index: false, follow: true },
-        }
-      : { index: true, follow: true },
+    robots: noindex ? ROBOTS_NOINDEX_FOLLOW : { index: true, follow: true },
   });
 }

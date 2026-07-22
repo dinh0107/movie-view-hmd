@@ -8,6 +8,7 @@ import {
 import {
   buildPageMetadata,
   pickParam,
+  ROBOTS_NOINDEX_FOLLOW,
   type SearchParams,
 } from "@/lib/seo";
 
@@ -36,28 +37,14 @@ export async function generateWatchMetadata({
   const baseTitle = movieSeoTitle(movie, slug);
   const title = `${baseTitle}${epSuffix}`;
 
-  const canonical =
-    ep !== undefined && ep !== "" && ep !== "0"
-      ? `/watch/${slug}?ep=${encodeURIComponent(ep)}`
-      : `/watch/${slug}`;
-
+  // Trang xem là phụ: noindex + canonical về trang chi tiết phim
   return buildPageMetadata({
     title,
     description: movieSeoDescription(movie, baseTitle),
-    canonical,
+    canonical: `/movies/${slug}`,
     images: movieSeoImages(movie).length ? movieSeoImages(movie) : undefined,
     absoluteTitle: true,
     openGraphType: "video.episode",
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: {
-        index: true,
-        follow: true,
-        "max-image-preview": "large",
-        "max-snippet": -1,
-        "max-video-preview": -1,
-      },
-    },
+    robots: ROBOTS_NOINDEX_FOLLOW,
   });
 }

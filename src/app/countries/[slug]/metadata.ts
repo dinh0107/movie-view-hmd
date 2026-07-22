@@ -5,6 +5,8 @@ import {
   buildPageMetadata,
   pickParam,
   prettySlug,
+  ROBOTS_NOINDEX_FOLLOW,
+  shouldNoindexListPage,
   shouldUseAbsoluteTitle,
   toAbsoluteImage,
   type SearchParams,
@@ -27,14 +29,14 @@ export async function generateCountryMetadata({
     page: String(page),
     limit: String(pickParam(sp, "limit") ?? 15),
   });
-  const country = pickParam(sp, "country");
+  const category = pickParam(sp, "category");
   const sortLang = pickParam(sp, "sort_lang");
   const year = pickParam(sp, "year");
-  if (country) q.set("country", country);
+  if (category) q.set("category", category);
   if (sortLang) q.set("sort_lang", sortLang);
   if (year) q.set("year", year);
 
-  const canonical = buildCanonicalPath(`/countries/${slug}`, { page });
+  const canonical = buildCanonicalPath(`/countries/${slug}`);
   const pretty = prettySlug(slug);
 
   let data: Record<string, unknown> = {};
@@ -52,6 +54,7 @@ export async function generateCountryMetadata({
       title,
       description: `Xem phim ${pretty} online miễn phí, chất lượng HD, cập nhật nhanh.`,
       canonical,
+      robots: ROBOTS_NOINDEX_FOLLOW,
     });
   }
 
@@ -78,8 +81,12 @@ export async function generateCountryMetadata({
     ogImages.length > 0 ? ogImages.slice(0, 3) : cover ? [cover] : undefined;
 
   const noItems = !Array.isArray(items) || items.length === 0;
-
   const titlePage = data.titlePage as string | undefined;
+  const noindex = shouldNoindexListPage({
+    page,
+    noItems,
+    filters: [category, sortLang, year],
+  });
 
   return buildPageMetadata({
     title,
@@ -89,12 +96,6 @@ export async function generateCountryMetadata({
     canonical,
     images,
     absoluteTitle: shouldUseAbsoluteTitle(seo, titlePage),
-    robots: noItems
-      ? {
-          index: false,
-          follow: true,
-          googleBot: { index: false, follow: true },
-        }
-      : { index: true, follow: true },
+    robots: noindex ? ROBOTS_NOINDEX_FOLLOW : { index: true, follow: true },
   });
 }

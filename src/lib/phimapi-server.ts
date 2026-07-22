@@ -13,9 +13,29 @@ export type MovieSeoRecord = {
   thumb_url?: string;
   year?: number;
   origin_name?: string;
+  quality?: string;
+  lang?: string;
+  type?: string;
+  episode_current?: string;
+  category?: Array<{ name: string; slug?: string }>;
+  country?: Array<{ name: string; slug?: string }>;
   seoOnPage: Record<string, unknown>;
   episodes?: unknown[];
 };
+
+function asTaxonomy(
+  val: unknown
+): Array<{ name: string; slug?: string }> | undefined {
+  if (!Array.isArray(val)) return undefined;
+  return val
+    .map((item) => {
+      const row = item as Record<string, unknown>;
+      const name = String(row?.name ?? "");
+      if (!name) return null;
+      return { name, slug: row?.slug ? String(row.slug) : undefined };
+    })
+    .filter(Boolean) as Array<{ name: string; slug?: string }>;
+}
 
 function parseMovieBody(
   body: Record<string, unknown>,
@@ -33,6 +53,14 @@ function parseMovieBody(
     thumb_url: movie.thumb_url as string | undefined,
     year: Number(movie.year) || undefined,
     origin_name: movie.origin_name as string | undefined,
+    quality: movie.quality as string | undefined,
+    lang: movie.lang as string | undefined,
+    type: movie.type as string | undefined,
+    episode_current: String(
+      movie.episode_current ?? movie.episode_total ?? ""
+    ),
+    category: asTaxonomy(movie.category ?? movie.categories),
+    country: asTaxonomy(movie.country ?? movie.countries),
     seoOnPage: (body.seoOnPage ?? {}) as Record<string, unknown>,
     episodes: (body.episodes ?? body.episode) as unknown[] | undefined,
   };
@@ -64,28 +92,53 @@ export async function fetchMovieDetailServer(
   return null;
 }
 
-export async function fetchMovieSeo(
+export type MovieSeoFetchResult =
+  | { status: "ok"; movie: MovieSeoRecord }
+  | { status: "not_found" }
+  | { status: "error" };
+
+export async function fetchMovieSeoResult(
   slug: string,
   revalidate = 600
-): Promise<MovieSeoRecord | null> {
+): Promise<MovieSeoFetchResult> {
   const safe = encodeURIComponent(slug.trim());
   const urls = [
     `${BASE}/phim/${safe}`,
     `${BASE}/v1/api/phim/${safe}`,
   ];
 
+  let sawNetwork = false;
+  let sawNotFound = false;
+
   for (const url of urls) {
     try {
       const res = await fetch(url, { next: { revalidate } });
+      sawNetwork = true;
+      if (res.status === 404) {
+        sawNotFound = true;
+        continue;
+      }
       if (!res.ok) continue;
       const body = (await res.json()) as Record<string, unknown>;
       const parsed = parseMovieBody(body, slug);
-      if (parsed) return parsed;
+      if (parsed) return { status: "ok", movie: parsed };
+      // API 200 nhưng không có movie → coi như không tồn tại
+      sawNotFound = true;
     } catch {
       // thử endpoint tiếp theo
     }
   }
-  return null;
+
+  if (sawNotFound && sawNetwork) return { status: "not_found" };
+  return { status: "error" };
+}
+
+export async function fetchMovieSeo(
+  slug: string,
+  revalidate = 600
+): Promise<MovieSeoRecord | null> {
+  const result = await fetchMovieSeoResult(slug, revalidate);
+  return result.status === "ok" ? result.movie : null;
 }
 
 export function movieSeoTitle(

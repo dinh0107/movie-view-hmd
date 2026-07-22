@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import HeroBannerSlider from "@/components/layout/carousel/HeroBannerSlider";
 import HotSearchBannerSlider from "@/components/layout/carousel/HotSearchBannerSlider";
 import MovieCategories from "@/components/sections/MovieSection";
+import { HomeSeo } from "@/components/seo/HomeSeo";
 import { SITE_URL } from "@/lib/site";
+
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: {
@@ -29,14 +32,13 @@ export const metadata: Metadata = {
   },
 };
 
-const HomePage = () => {
+export default async function HomePage() {
   return (
     <main>
+      <HomeSeo />
       <HeroBannerSlider />
       <MovieCategories />
       <HotSearchBannerSlider />
     </main>
   );
-};
-
-export default HomePage;
+}

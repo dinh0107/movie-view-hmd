@@ -4,6 +4,8 @@ import {
   buildCanonicalPath,
   buildPageMetadata,
   pickParam,
+  ROBOTS_NOINDEX_FOLLOW,
+  shouldNoindexListPage,
   shouldUseAbsoluteTitle,
   toAbsoluteImage,
   type SearchParams,
@@ -55,7 +57,7 @@ export async function generateTypeMetadata({
   if (!isNewest && sortLang) q.set("sort_lang", sortLang);
   if (year) q.set("year", year);
 
-  const canonical = buildCanonicalPath(`/types/${slug}`, { page });
+  const canonical = buildCanonicalPath(`/types/${slug}`);
   const pretty = prettyFromSlug(slug);
 
   let payload: Record<string, unknown> = {};
@@ -64,7 +66,9 @@ export async function generateTypeMetadata({
       `/danh-sach/${encodeURIComponent(slug)}?${q.toString()}`,
       { baseKey, fallbackBases: isNewest ? undefined : ["phim_root"] }
     );
-    payload = isNewest ? (res ?? {}) : ((res?.data as Record<string, unknown>) ?? {});
+    payload = isNewest
+      ? (res ?? {})
+      : ((res?.data as Record<string, unknown>) ?? {});
   } catch (err) {
     console.error("[types] generateMetadata:", err);
     const title = page > 1 ? `${pretty} - Trang ${page}` : pretty;
@@ -72,6 +76,7 @@ export async function generateTypeMetadata({
       title,
       description: "Xem phim online miễn phí, chất lượng HD, cập nhật nhanh.",
       canonical,
+      robots: ROBOTS_NOINDEX_FOLLOW,
     });
   }
 
@@ -91,6 +96,11 @@ export async function generateTypeMetadata({
   const data = payload.data as Record<string, unknown> | undefined;
   const listItems = (payload.items ?? data?.items) as unknown[] | undefined;
   const noItems = !Array.isArray(listItems) || listItems.length === 0;
+  const noindex = shouldNoindexListPage({
+    page,
+    noItems,
+    filters: [category, country, sortLang, year],
+  });
 
   return buildPageMetadata({
     title,
@@ -100,12 +110,6 @@ export async function generateTypeMetadata({
     canonical,
     images: images.length ? images : undefined,
     absoluteTitle: shouldUseAbsoluteTitle(seo, titlePage),
-    robots: noItems
-      ? {
-          index: false,
-          follow: true,
-          googleBot: { index: false, follow: true },
-        }
-      : { index: true, follow: true },
+    robots: noindex ? ROBOTS_NOINDEX_FOLLOW : { index: true, follow: true },
   });
 }
