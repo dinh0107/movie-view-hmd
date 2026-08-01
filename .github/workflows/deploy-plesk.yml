@@ -4,6 +4,15 @@ on:
   push:
     branches: [main, master]
   workflow_dispatch:
+    inputs:
+      protocol:
+        description: "FTP protocol (Plesk thường dùng ftp)"
+        type: choice
+        options:
+          - ftp
+          - ftps
+          - ftps-legacy
+        default: ftp
 
 concurrency:
   group: deploy-plesk
@@ -80,15 +89,25 @@ jobs:
           echo "Stage OK"
           du -sh "$STAGE"
 
-      - name: Normalize FTP remote dir
-        id: ftp_dir
+      - name: Normalize FTP options
+        id: ftp
         env:
-          RAW: ${{ secrets.FTP_REMOTE_DIR }}
+          RAW_DIR: ${{ secrets.FTP_REMOTE_DIR }}
+          RAW_PROTO: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.protocol || vars.FTP_PROTOCOL }}
+          RAW_PORT: ${{ vars.FTP_PORT }}
         run: |
-          DIR="${RAW:-./}"
+          DIR="${RAW_DIR:-./}"
           DIR="${DIR%/}/"
+          PROTO="${RAW_PROTO:-ftp}"
+          case "$PROTO" in ftp|ftps|ftps-legacy) ;; *)
+            echo "Invalid protocol '$PROTO' — dùng ftp|ftps|ftps-legacy"
+            exit 1
+          esac
+          PORT="${RAW_PORT:-21}"
           echo "server_dir=$DIR" >> "$GITHUB_OUTPUT"
-          echo "FTP remote dir: $DIR"
+          echo "protocol=$PROTO" >> "$GITHUB_OUTPUT"
+          echo "port=$PORT" >> "$GITHUB_OUTPUT"
+          echo "FTP: protocol=$PROTO port=$PORT dir=$DIR"
 
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
@@ -96,14 +115,18 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          # Chỉ nhận: ftp | ftps | ftps-legacy — không đọc từ secret (dễ set sai)
-          protocol: ftps
-          port: 21
+          # Plesk Windows: mặc định ftp — ftps hay ECONNRESET data socket
+          protocol: ${{ steps.ftp.outputs.protocol }}
+          port: ${{ steps.ftp.outputs.port }}
+          security: loose
+          timeout: 120000
+          log-level: standard
           local-dir: .plesk-stage/
-          server-dir: ${{ steps.ftp_dir.outputs.server_dir }}
+          server-dir: ${{ steps.ftp.outputs.server_dir }}
           dangerous-clean-slate: false
+          # Không exclude node_modules — Next standalone cần .next/standalone/node_modules
           exclude: |
             **/.git*
             **/.git*/**
-            **/node_modules/**
             **/.env.local
+            **/.ftp-deploy-sync-state.json

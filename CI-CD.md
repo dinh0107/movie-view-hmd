@@ -21,10 +21,13 @@
 | `NEXT_PUBLIC_SITE_URL` | cùng `SITE_URL` | Nên có |
 | `PORT` | `3303` | Không |
 
-Protocol mặc định trong workflow: **`ftps`**, port **`21`**.  
-Nếu host chỉ hỗ trợ FTP thường: sửa `protocol: ftp` trong `deploy-plesk.yml`.
+Protocol mặc định: **`ftp`** (Plesk Windows hay bị `ECONNRESET` với `ftps`).
 
-**Xóa secret `FTP_PROTOCOL` / `FTP_PORT` nếu đã tạo** — giá trị sai (ví dụ `FTPS`, `sftp`, URL) làm job fail.
+Đổi protocol:
+- **Actions → Deploy Plesk → Run workflow** → chọn `ftp` / `ftps` / `ftps-legacy`
+- Hoặc Variables: `FTP_PROTOCOL`, `FTP_PORT` (Settings → Variables)
+
+Nếu vẫn lỗi kết nối: trong Plesk bật FTP (không bắt buộc FTPS), kiểm tra firewall passive ports.
 
 ### Lấy FTP trong Plesk
 
