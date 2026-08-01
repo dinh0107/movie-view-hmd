@@ -16,12 +16,15 @@
 | `FTP_SERVER` | `ftp.domain.com` hoặc IP | Có |
 | `FTP_USERNAME` | user FTP Plesk | Có |
 | `FTP_PASSWORD` | mật khẩu FTP | Có |
-| `FTP_REMOTE_DIR` | `/httpdocs/` hoặc `/` | Có |
-| `FTP_PROTOCOL` | `ftps` (khuyến nghị) hoặc `ftp` | Không (mặc định ftps) |
-| `FTP_PORT` | `21` | Không |
+| `FTP_REMOTE_DIR` | `/httpdocs/` hoặc `/` (phải kết thúc `/`) | Có |
 | `SITE_URL` | `https://phimngay.top` | Nên có |
 | `NEXT_PUBLIC_SITE_URL` | cùng `SITE_URL` | Nên có |
 | `PORT` | `3303` | Không |
+
+Protocol mặc định trong workflow: **`ftps`**, port **`21`**.  
+Nếu host chỉ hỗ trợ FTP thường: sửa `protocol: ftp` trong `deploy-plesk.yml`.
+
+**Xóa secret `FTP_PROTOCOL` / `FTP_PORT` nếu đã tạo** — giá trị sai (ví dụ `FTPS`, `sftp`, URL) làm job fail.
 
 ### Lấy FTP trong Plesk
 

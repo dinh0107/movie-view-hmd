@@ -17,7 +17,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node 20
         uses: actions/setup-node@v4
@@ -73,7 +73,6 @@ jobs:
           NODE_ENV=production
           EOF
 
-          # bỏ indent thừa trong .env
           sed -i 's/^[[:space:]]*//' "$STAGE/.env"
 
           test -f "$STAGE/.next/standalone/server.js"
@@ -82,15 +81,16 @@ jobs:
           du -sh "$STAGE"
 
       - name: Deploy via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ${{ secrets.FTP_PROTOCOL != '' && secrets.FTP_PROTOCOL || 'ftps' }}
-          port: ${{ secrets.FTP_PORT != '' && secrets.FTP_PORT || 21 }}
+          # Chỉ nhận: ftp | ftps | ftps-legacy — không đọc từ secret (dễ set sai)
+          protocol: ftps
+          port: 21
           local-dir: .plesk-stage/
-          server-dir: ${{ secrets.FTP_REMOTE_DIR != '' && secrets.FTP_REMOTE_DIR || './' }}
+          server-dir: ${{ secrets.FTP_REMOTE_DIR }}
           dangerous-clean-slate: false
           exclude: |
             **/.git*
