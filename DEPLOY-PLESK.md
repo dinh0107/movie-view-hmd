@@ -2,7 +2,7 @@
 
 ## Yêu cầu trên server
 
-- Plesk + **Node.js Toolkit** (Node **20.x** trở lên)
+- Plesk + **Node.js Toolkit** — chọn **Node.js 20.x**
 - Domain trỏ về hosting
 - (Tuỳ chọn IIS) URL Rewrite + ARR nếu dùng reverse proxy qua `web.config`
 
@@ -43,7 +43,7 @@ Ra file `plesk-deploy.zip`.
 
 | Field | Value |
 |-------|--------|
-| Node.js version | 20.x |
+| Node.js version | **20.x** (bắt buộc) |
 | Application mode | `production` |
 | Application root | thư mục chứa `main.js` |
 | Application startup file | `main.js` |

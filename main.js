@@ -1,8 +1,9 @@
 /**
- * Entry cho Plesk Node.js / Windows.
+ * Entry cho Plesk Node.js / Windows (Node 20).
  * Chạy sau `npm run build` (output: standalone).
  *
- * Plesk → Node.js → Application Startup File: main.js
+ * Plesk → Node.js version: 20.x
+ * Plesk → Application Startup File: main.js
  */
 const path = require("path");
 const fs = require("fs");
