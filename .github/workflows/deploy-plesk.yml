@@ -1,0 +1,99 @@
+name: Deploy Plesk
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-plesk
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build & Deploy to Plesk
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build (standalone)
+        env:
+          SITE_URL: ${{ secrets.SITE_URL }}
+          NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
+          NODE_ENV: production
+        run: |
+          export SITE_URL="${SITE_URL:-https://phimngay.top}"
+          export NEXT_PUBLIC_SITE_URL="${NEXT_PUBLIC_SITE_URL:-$SITE_URL}"
+          echo "SITE_URL=$SITE_URL"
+          npm run build
+
+      - name: Stage Plesk package
+        env:
+          SITE_URL: ${{ secrets.SITE_URL }}
+          NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
+          APP_PORT: ${{ secrets.PORT }}
+        run: |
+          set -euo pipefail
+          STAGE=.plesk-stage
+          rm -rf "$STAGE"
+          mkdir -p "$STAGE/.next"
+
+          mkdir -p .next/standalone/.next
+          rm -rf .next/standalone/.next/static
+          cp -R .next/static .next/standalone/.next/static
+          if [ -d public ]; then
+            rm -rf .next/standalone/public
+            cp -R public .next/standalone/public
+          fi
+
+          cp main.js web.config package.json .env.example "$STAGE/"
+          cp -R .next/standalone "$STAGE/.next/standalone"
+
+          SITE_URL="${SITE_URL:-https://phimngay.top}"
+          NEXT_PUBLIC_SITE_URL="${NEXT_PUBLIC_SITE_URL:-$SITE_URL}"
+          APP_PORT="${APP_PORT:-3303}"
+
+          cat > "$STAGE/.env" <<EOF
+          SITE_URL=${SITE_URL}
+          NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
+          PORT=${APP_PORT}
+          HOSTNAME=0.0.0.0
+          NODE_ENV=production
+          EOF
+
+          # bỏ indent thừa trong .env
+          sed -i 's/^[[:space:]]*//' "$STAGE/.env"
+
+          test -f "$STAGE/.next/standalone/server.js"
+          test -f "$STAGE/main.js"
+          echo "Stage OK"
+          du -sh "$STAGE"
+
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ${{ secrets.FTP_PROTOCOL != '' && secrets.FTP_PROTOCOL || 'ftps' }}
+          port: ${{ secrets.FTP_PORT != '' && secrets.FTP_PORT || 21 }}
+          local-dir: .plesk-stage/
+          server-dir: ${{ secrets.FTP_REMOTE_DIR != '' && secrets.FTP_REMOTE_DIR || './' }}
+          dangerous-clean-slate: false
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/.env.local

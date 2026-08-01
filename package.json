@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "start:plesk": "node main.js",
-    "pack:plesk": "powershell -ExecutionPolicy Bypass -File ./scripts/pack-plesk.ps1",
+    "pack:plesk": "node scripts/pack-plesk.mjs",
+    "pack:plesk:ps1": "powershell -ExecutionPolicy Bypass -File ./scripts/pack-plesk.ps1",
     "lint": "eslint"
   },
   "engines": {

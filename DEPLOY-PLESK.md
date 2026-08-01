@@ -26,7 +26,7 @@ NODE_ENV=production
 
 ```powershell
 cd C:\Users\nguye\Desktop\movie-view
-powershell -ExecutionPolicy Bypass -File .\scripts\pack-plesk.ps1
+npm run pack:plesk
 ```
 
 Ra file `plesk-deploy.zip`.
@@ -98,4 +98,4 @@ xcopy /E /I /Y public .next\standalone\public
 
 - Không cần Vercel khi chạy Plesk; Analytics/Speed Insights của Vercel có thể bỏ hoặc giữ (không bắt buộc).
 - Firewall Windows: cho phép localhost `PORT` nếu dùng IIS proxy.
-- Sau mỗi lần sửa code: chạy lại `pack-plesk.ps1` → upload → Restart App.
+- Sau mỗi lần sửa code: chạy lại `pack-plesk` hoặc push `main` để CI/CD deploy (xem `CI-CD.md`).
