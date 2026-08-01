@@ -80,6 +80,16 @@ jobs:
           echo "Stage OK"
           du -sh "$STAGE"
 
+      - name: Normalize FTP remote dir
+        id: ftp_dir
+        env:
+          RAW: ${{ secrets.FTP_REMOTE_DIR }}
+        run: |
+          DIR="${RAW:-./}"
+          DIR="${DIR%/}/"
+          echo "server_dir=$DIR" >> "$GITHUB_OUTPUT"
+          echo "FTP remote dir: $DIR"
+
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
@@ -90,7 +100,7 @@ jobs:
           protocol: ftps
           port: 21
           local-dir: .plesk-stage/
-          server-dir: ${{ secrets.FTP_REMOTE_DIR }}
+          server-dir: ${{ steps.ftp_dir.outputs.server_dir }}
           dangerous-clean-slate: false
           exclude: |
             **/.git*

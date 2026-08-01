@@ -16,7 +16,7 @@
 | `FTP_SERVER` | `ftp.domain.com` hoặc IP | Có |
 | `FTP_USERNAME` | user FTP Plesk | Có |
 | `FTP_PASSWORD` | mật khẩu FTP | Có |
-| `FTP_REMOTE_DIR` | `/httpdocs/` hoặc `/` (phải kết thúc `/`) | Có |
+| `FTP_REMOTE_DIR` | `/httpdocs/` hoặc `./` (workflow tự thêm `/` cuối) | Có |
 | `SITE_URL` | `https://phimngay.top` | Nên có |
 | `NEXT_PUBLIC_SITE_URL` | cùng `SITE_URL` | Nên có |
 | `PORT` | `3303` | Không |
