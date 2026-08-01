@@ -13,7 +13,7 @@ Tạo file `.env` (hoặc Custom environment variables trong Plesk):
 ```
 SITE_URL=https://domain-cua-ban.com
 NEXT_PUBLIC_SITE_URL=https://domain-cua-ban.com
-PORT=3000
+PORT=3303
 HOSTNAME=0.0.0.0
 NODE_ENV=production
 ```
@@ -49,14 +49,14 @@ Ra file `plesk-deploy.zip`.
 | Application startup file | `main.js` |
 | Application URL | `/` |
 
-**Environment variables:** thêm `SITE_URL`, `PORT=3000`, `NODE_ENV=production`.
+**Environment variables:** thêm `SITE_URL`, `PORT=3303`, `NODE_ENV=production`.
 
 Bấm **Enable Node.js** / **Restart App**.
 
 ### 4. Proxy domain → Node (nếu Plesk chưa proxy sẵn)
 
 - Nếu Node.js Toolkit đã gắn domain → thường xong.
-- Nếu site vẫn mở IIS tĩnh: dùng `web.config` (reverse proxy `127.0.0.1:3000`) — cần ARR + URL Rewrite.
+- Nếu site vẫn mở IIS tĩnh: dùng `web.config` (reverse proxy `127.0.0.1:3303`) — cần ARR + URL Rewrite.
 
 ## Cách B — Build trên server (cần đủ RAM)
 

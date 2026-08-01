@@ -9,7 +9,7 @@ const path = require("path");
 const fs = require("fs");
 const { spawn } = require("child_process");
 
-const PORT = process.env.PORT || "3000";
+const PORT = process.env.PORT || "3303";
 const HOSTNAME = process.env.HOSTNAME || "0.0.0.0";
 
 process.env.PORT = String(PORT);
