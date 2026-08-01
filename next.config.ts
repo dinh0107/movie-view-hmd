@@ -10,6 +10,8 @@ const SEO_BOTS =
   /Googlebot|Google-InspectionTool|Storebot-Google|Bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|facebookexternalhit|Facebot|Twitterbot|LinkedInBot|WhatsApp|TelegramBot|Discordbot|Slackbot|Applebot|Pinterestbot|GPTBot|ClaudeBot|anthropic-ai|PerplexityBot|Bytespider/i;
 
 const nextConfig: NextConfig = {
+  // Gói gọn để chạy trên VPS / Windows Plesk (node server.js)
+  output: "standalone",
   htmlLimitedBots: SEO_BOTS,
   outputFileTracingRoot: projectRoot,
   turbopack: {

@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "start:plesk": "node main.js",
+    "pack:plesk": "powershell -ExecutionPolicy Bypass -File ./scripts/pack-plesk.ps1",
     "lint": "eslint"
   },
   "engines": {
